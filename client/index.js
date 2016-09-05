@@ -1,4 +1,6 @@
 var startTime=0;
+var lastTime=0;
+var curTime=0;
 
 var game = new PIXI.Container();
 var scene = new PIXI.Container();
@@ -211,12 +213,28 @@ function setup(){
 }
 
 function main(){
+	curTime=Date.now()-startTime;
 	}if(keys.isJustDown(keys.SPACE)){
 	// render
 	renderer.render(scene,renderTexture);
 	renderer.render(renderContainer);
 	requestAnimationFrame(main);
+	// log FPS
+	++fpsCounter;
+	if(fpsCounter>=100){
+		fpsCounter=0;
+		fpsAverage/=100;
+		console.log("FPS",fpsAverage);
+		fpsAverage=0;
+	}
+	fpsAverage+=1000/(curTime-lastTime);
+
+
+	lastTime=curTime;
 }
+
+fpsAverage=0;
+fpsCounter=0;
 
 function onResize() {
 	renderer.view.style.opacity = "0";
