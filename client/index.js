@@ -32,6 +32,11 @@ $(document).ready(function(){
 		mouse.pos=[event.clientX,event.clientY];
 	});
 
+	$(document).on("mousewheel",function(event){
+		game.messages.scrollOffset += event.originalEvent.wheelDelta > 0 ? 1 : -1;
+		game.messages.scrollOffset = clamp(0,game.messages.scrollOffset,game.messages.messages.length-game.messages.displaySize);
+	});
+
 	// try to auto-focus and make sure the game can be focused with a click if run from an iframe
 	window.focus();
 	$(document).on("mousedown",function(event){
@@ -195,18 +200,51 @@ function setup(){
 
 	scene.addChild(game);
 
-	game.messages=[];
-	game.messageBox=new PIXI.Graphics();
-	game.messageBox.update=function(){
-
+	game.messages={
+		messages:[],
+		messageBox:new PIXI.Graphics(),
+		scrollOffset:0,
+		bufferSize:20,
+		displaySize:8
 	};
-	game.messageBox.beginFill(0xFFFFFF);
-	game.messageBox.lineStyle(1, 0x999999, 1);
-	game.messageBox.drawRect(0,0,scale*43,scale*8);
-	game.messageBox.endFill();
+	game.messages.messageBox.update=function(){
+		var self=game.messages.messageBox;
+		self.clear();
+		
+		// draw message box
+		self.beginFill(0xFFFFFF);
+		self.lineStyle(1, 0x999999, 1);
+		self.drawRect(0,0,scale*43,scale*game.messages.displaySize);
+		self.endFill();
 
-	game.addChild(game.messageBox);
-	ui.add(game.messageBox,true,false,scale,-scale*12);
+		// draw scrollbar thumb
+		self.beginFill(0xFFFFFF);
+		self.lineStyle(1, 0x999999, 1);
+		self.drawRect(scale*42,scale*(game.messages.displaySize-1)*(1-(game.messages.scrollOffset)/(game.messages.messages.length-game.messages.displaySize)),scale,scale);
+		self.endFill();
+
+		// line separating scrollbar from message area
+		self.beginFill(0xFFFFFF);
+		self.lineStyle(1, 0x999999, 1);
+		self.moveTo(scale*42,scale*game.messages.displaySize);
+		self.lineTo(scale*42,0);
+		self.endFill();
+
+
+
+		for(var i=0; i<game.messages.messages.length;++i){
+			var o=i-game.messages.scrollOffset;
+			if(o >= 0 && o < game.messages.displaySize){
+				game.messages.messages[i].position.y=scale*(game.messages.displaySize-o);
+				game.messages.messages[i].visible=true;
+			}else{
+				game.messages.messages[i].visible=false;
+			}
+		}
+	};
+
+	game.addChild(game.messages.messageBox);
+	ui.add(game.messages.messageBox,true,false,scale,-scale*(game.messages.displaySize+4));
 
 
 
@@ -239,6 +277,11 @@ function setup(){
 function main(){
 	curTime=Date.now()-startTime;
 	}if(keys.isJustDown(keys.SPACE)){
+
+	for(var i=0; i < ui.elements.length; ++i){
+		ui.elements[i].ui.update();
+	}
+
 	// render
 	renderer.render(scene,renderTexture);
 	renderer.render(renderContainer);
@@ -342,26 +385,19 @@ function postMessage(_str){
 	while(lines.length > 0){
 		_str=lines[0];
 		var t = new PIXI.Text(_str, textStyle);
-		t.update=function(){
-
-		};
 		t.position.y=scale*(4+lines.length);
 		t.position.x=scale;
 		t.anchor.y=1;
 
 		lines=lines.slice(1);
 		res.push(t);
-		game.messageBox.addChild(t);
+		game.messages.messageBox.addChild(t);
 	}
 
-	game.messages=res.concat(game.messages);
+	game.messages.messages=res.concat(game.messages.messages);
 
-	for(var i=0; i<game.messages.length;++i){
-		if(i < 8){
-			game.messages[i].position.y=scale*(8-i);
-		}else{
-			game.messages[i].visible=false;		
-		}
+	while(game.messages.messages.length > game.messages.bufferSize){
+		game.messages.messageBox.removeChild(game.messages.messages.pop());
 	}
 
 	return res;
