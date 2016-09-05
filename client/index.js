@@ -208,9 +208,6 @@ function setup(){
 
 	// unhide the renderer
 	renderer.view.style.display = "block";
-	setTimeout(function(){
-		renderer.view.style.opacity = "1";
-	},1000);
 }
 
 function main(){
@@ -239,7 +236,7 @@ function onResize() {
 		renderer.view.style.opacity = "1";
 
 		console.log("Resized",size);
-	},500);
+	},250);
 }
 
 // lays out all UI elements based on size
