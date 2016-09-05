@@ -5,6 +5,14 @@ var scene = new PIXI.Container();
 
 var resizeTimeout=null;
 
+var scale=12;
+
+var mouse={
+	pos:[0,0]
+};
+
+var size=[1280,720];
+
 var ui={
 	elements:[],
 	add:function(_ui,_fromLeft,_fromTop,_x,_y){
@@ -18,6 +26,10 @@ var ui={
 };
 
 $(document).ready(function(){
+	$(document).on("mousemove",function(event){
+		mouse.pos=[event.clientX,event.clientY];
+	});
+
 	// try to auto-focus and make sure the game can be focused with a click if run from an iframe
 	window.focus();
 	$(document).on("mousedown",function(event){
@@ -28,7 +40,6 @@ $(document).ready(function(){
 	startTime=Date.now();
 
 	// create renderer
-	size = [1280, 720];
 	renderer = PIXI.autoDetectRenderer(
 		size[0],size[1],
 		{
@@ -38,7 +49,7 @@ $(document).ready(function(){
 			roundPixels:true}
 	);
 	renderer.visible=false;
-	renderer.backgroundColor = 0x00FFFF;
+	renderer.backgroundColor = 0xFFFFFF;
 	renderer.view.style.opacity = "0";
 
 	PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.LINEAR;
@@ -99,21 +110,88 @@ function setup(){
 	console.log("All files loaded");
 
 
-	var textStyle = {
-		fontFamily: 'Courier New',
-		fontSize:12,
+	textStyle = {
+		fontFamily: 'gamefont',
+		fontSize:scale,
 		fill : '#999999',
 		dropShadow : false,
 		wordWrap : false
 	};
-	var basicText = new PIXI.Text('Explore', textStyle);
+
+	function makeButton(_text){
+		var g = new PIXI.Graphics();
+
+		var t = new PIXI.Text(_text, textStyle);
+		g.addChild(t);
+		t.position.y=scale/2;
+		t.position.x=scale*5-_text.length*scale/3.4;
+
+		g.text=t;
+		g.update=function(){
+			g.clear();
+			if(
+				mouse.pos[0] > g.position.x &&
+				mouse.pos[1] > g.position.y &&
+				mouse.pos[0] < g.position.x+scale*10 &&
+				mouse.pos[1] < g.position.y*scale*2
+			){
+				g.beginFill(0x999999);
+				g.lineStyle(1, 0x999999, 1);
+				g.drawRect(0,0,scale*10,scale*2);
+				g.endFill();
+				t.style.fill='#FFFFFF';
+			}else{
+				g.beginFill(0xFFFFFF);
+				g.lineStyle(1, 0x999999, 1);
+				g.drawRect(0,0,scale*10,scale*2);
+				g.endFill();
+				t.style.fill='#999999';
+			}
+		};
+
+		return g;
+	};
+
+	var btnExplore=makeButton("explore");
+	var btnExpand=makeButton("expand");
+	var btnExploit=makeButton("exploit");
+	var btnExterminate=makeButton("exterminate");
+	
+	var btnOptions= new PIXI.Graphics();
+	btnOptions.update=function(){
+		btnOptions.clear();
+			if(
+				mouse.pos[0] > btnOptions.position.x &&
+				mouse.pos[1] > btnOptions.position.y &&
+				mouse.pos[0] < btnOptions.position.x+scale*2 &&
+				mouse.pos[1] < btnOptions.position.y*scale*2
+			){
+				btnOptions.beginFill(0x999999);
+				btnOptions.lineStyle(1, 0x999999, 1);
+				btnOptions.drawRect(0,0,scale*2,scale*2);
+				btnOptions.endFill();
+			}else{
+				btnOptions.beginFill(0xFFFFFF);
+				btnOptions.lineStyle(1, 0x999999, 1);
+				btnOptions.drawRect(0,0,scale*2,scale*2);
+				btnOptions.endFill();
+			}
+	}
+
+	game.addChild(btnExplore);
+	game.addChild(btnExpand);
+	game.addChild(btnExploit);
+	game.addChild(btnExterminate);
+	game.addChild(btnOptions);
+	
+	ui.add(btnExplore,true,false,scale,-scale*3);
+	ui.add(btnExpand,true,false,scale*12,-scale*3);
+	ui.add(btnExploit,true,false,scale*23,-scale*3);
+	ui.add(btnExterminate,true,false,scale*34,-scale*3);
+	ui.add(btnOptions,false,false,-scale*3,-scale*3);
+
 
 	scene.addChild(game);
-	scene.addChild(basicText);
-
-	ui.add(basicText,true,false,12,-12);
-
-
 
 
 	// shader
@@ -153,6 +231,7 @@ function onResize() {
 		size[0]=$("#display").outerWidth();
 		size[1]=$("#display").outerHeight();
 		renderer.resize(size[0],size[1]);
+		brt.resize(size[0],size[1]);
 		renderer.view.style.width = size[0] + 'px';
 		renderer.view.style.height = size[1] + 'px';
 
@@ -173,9 +252,6 @@ function layoutAll(){
 // lays out UI elements based on size
 function layoutUI(_idx){
 	var u=ui.elements[_idx];
-
 	u.ui.position.x = (u.from[0] ? 0 : size[0]) + u.pos[0];
 	u.ui.position.y = (u.from[1] ? 0 : size[1]) + u.pos[1];
-
-	console.log(u);
 }
