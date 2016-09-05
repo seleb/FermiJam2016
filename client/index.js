@@ -195,6 +195,30 @@ function setup(){
 
 	scene.addChild(game);
 
+	game.messages=[];
+	game.messageBox=new PIXI.Graphics();
+	game.messageBox.update=function(){
+
+	};
+	game.messageBox.beginFill(0xFFFFFF);
+	game.messageBox.lineStyle(1, 0x999999, 1);
+	game.messageBox.drawRect(0,0,scale*43,scale*8);
+	game.messageBox.endFill();
+
+	game.addChild(game.messageBox);
+	ui.add(game.messageBox,true,false,scale,-scale*12);
+
+
+
+	var textArray = [].concat(
+		postMessage("This is a single line."),
+		postMessage("This is two lines in one.\nHere's the other one."),
+		postMessage("This is a long paragraph that probably shouldn't fit in a single line and will wrap around instead. In fact, it's so long that it should take up at least three lines on its own.")
+	);
+
+	setInterval(function(){
+		postMessage(Date.now().toString());
+	},500);
 
 	// shader
 	/*var fragmentSrc = PIXI.loader.resources.shader.data;
@@ -269,4 +293,76 @@ function layoutUI(_idx){
 	var u=ui.elements[_idx];
 	u.ui.position.x = (u.from[0] ? 0 : size[0]) + u.pos[0];
 	u.ui.position.y = (u.from[1] ? 0 : size[1]) + u.pos[1];
+}
+
+
+
+
+
+
+function postMessage(_str){
+
+	var res=[];
+	var lines=_str.split("\n");
+	
+	// multiple lines
+	if(lines.length > 1){
+		while(lines.length > 0){
+			res=res.concat(postMessage(lines[0]));
+			lines=lines.slice(1);
+		}
+		return res;
+	}
+
+
+	// individual line
+
+	// split the input string into words
+	// add words to lines until an added word would overflow
+	// when this happens, save the current line and go to the next
+	var words=_str.split(" ");
+	var lines=[];
+	_str="//";
+	while(words.length > 0){
+		if(_str.length + words[0].length+1 > scale*5.5){
+			lines.unshift(_str);
+			_str="//";
+		}else{
+			_str+=" "+words[0];
+			words=words.slice(1);
+		}
+	}
+	// if there's any _str left-over in the last line add it here
+	// (unless the _str is a perfect fit, we'll have missed the last bit in the loop)
+	if(_str.length>0){
+		lines.unshift(_str);
+	}
+
+	// add lines to screen
+	while(lines.length > 0){
+		_str=lines[0];
+		var t = new PIXI.Text(_str, textStyle);
+		t.update=function(){
+
+		};
+		t.position.y=scale*(4+lines.length);
+		t.position.x=scale;
+		t.anchor.y=1;
+
+		lines=lines.slice(1);
+		res.push(t);
+		game.messageBox.addChild(t);
+	}
+
+	game.messages=res.concat(game.messages);
+
+	for(var i=0; i<game.messages.length;++i){
+		if(i < 8){
+			game.messages[i].position.y=scale*(8-i);
+		}else{
+			game.messages[i].visible=false;		
+		}
+	}
+
+	return res;
 }
