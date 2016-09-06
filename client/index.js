@@ -23,7 +23,8 @@ var palette={
 var ui={
 	currentElement:null,
 	layoutElements:[],
-	
+	hitboxes:[],
+	hitcircles:[],
 
 	addToLayout:function(_ui,_fromLeft,_fromTop,_x,_y){
 		this.layoutElements.push({
@@ -36,40 +37,32 @@ var ui={
 
 
 	update:function(){
-		for(var i=0; i < ui.layoutElements.length; ++i){
-			var u=ui.layoutElements[i];
-			u.ui.update();
-		}
-	}
-};
-
-
-var sounds=[];
-
-$(document).ready(function(){
-	$(document).on("mousemove",function(event){
-		mouse.pos=[event.pageX,event.pageY];
+		// update mouse interaction
 		var prevElement = ui.currentElement;
 		ui.currentElement=null;
-		for(var i=0; i < ui.layoutElements.length; ++i){
-			var u=ui.layoutElements[i];
-			if(u.ui.interaction){
-				if(
-					mouse.pos[0] >= u.ui.position.x &&
-					mouse.pos[1] >= u.ui.position.y &&
-					mouse.pos[0] <= u.ui.position.x+u.ui.interaction.w &&
-					mouse.pos[1] <= u.ui.position.y*u.ui.interaction.h
-				){
-					ui.currentElement=u.ui;
-				}
+		for(var i=0; i < ui.hitboxes.length; ++i){
+			var u=ui.hitboxes[i];
+			if(
+				mouse.pos[0] >= u.e.position.x &&
+				mouse.pos[1] >= u.e.position.y &&
+				mouse.pos[0] <= u.e.position.x+u.w &&
+				mouse.pos[1] <= u.e.position.y+u.h
+			){
+				ui.currentElement=u;
+			}
+		}
+		for(var i=0; i < ui.hitcircles.length; ++i){
+			var u=ui.hitcircles[i];
+			if(Math.pow(mouse.pos[0]-u.e.position.x,2)+Math.pow(mouse.pos[1]-u.e.position.y,2) <= u.r*u.r){
+				ui.currentElement=u;
 			}
 		}
 
 		if(prevElement!=ui.currentElement){
 			if(prevElement!=null){
-				prevElement.interaction.onMouseOut(prevElement);
+				prevElement.onMouseOut();
 			}if(ui.currentElement!=null){
-				ui.currentElement.interaction.onMouseOver(ui.currentElement);
+				ui.currentElement.onMouseOver();
 			}
 		}
 
@@ -78,6 +71,21 @@ $(document).ready(function(){
 		}else{
 			document.body.style.cursor = 'auto';
 		}
+
+
+		// update ui elements
+		for(var i=0; i < ui.layoutElements.length; ++i){
+			var u=ui.layoutElements[i];
+			u.ui.update();
+		}
+	}
+};
+
+var sounds=[];
+
+$(document).ready(function(){
+	$(document).on("mousemove",function(event){
+		mouse.pos=[event.pageX,event.pageY];
 	});
 
 	$(document).on("mousewheel DOMMouseScroll",function(event){
@@ -90,7 +98,7 @@ $(document).ready(function(){
 
 	$(document).on("click",function(event){
 		if(ui.currentElement!=null){
-			ui.currentElement.interaction.onClick(ui.currentElement);
+			ui.currentElement.onClick();
 		}
 	});
 
@@ -205,101 +213,109 @@ function setup(){
 		return g;
 	};
 
+
+
+	// UI SETUP
+
 	var btnExplore=makeButton("explore");
 	var btnExpand=makeButton("expand");
 	var btnExploit=makeButton("exploit");
 	var btnExterminate=makeButton("exterminate");
 	
 
-	function btn_onMouseOver(self){
-		self.clear();
-		self.beginFill(palette.color2);
-		self.lineStyle(1, palette.color2, 1);
-		self.drawRect(0,0,scale*10,scale*2);
-		self.endFill();
-		self.text.style.fill=palette.color1;
-	};
-	function btn_onMouseOut(self){
-		self.clear();
-		self.beginFill(palette.color1);
-		self.lineStyle(1, palette.color2, 1);
-		self.drawRect(0,0,scale*10,scale*2);
-		self.endFill();
-		self.text.style.fill=palette.color2;
-	};
-
-	btnExplore.interaction={
-		w:scale*10,
-		h:scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:function(self){
-			postMessage(Date.now()+self.toString());
-			sounds["tick"].play();
-		}
-	};
-	btnExpand.interaction={
-		w:scale*10,
-		h:scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:function(self){
-			postMessage(Date.now()+self.toString());
-			sounds["tick"].play();
-		}
-	};
-	btnExploit.interaction={
-		w:scale*10,
-		h:scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:function(self){
-			postMessage(Date.now()+self.toString());
-			sounds["tick"].play();
-		}
-	};
-	btnExterminate.interaction={
-		w:scale*10,
-		h:scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:function(self){
-			postMessage(Date.now()+self.toString());
-			sounds["tick"].play();
-		}
-	};
-
-	btnExplore.interaction.onMouseOut(btnExplore);
-	btnExpand.interaction.onMouseOut(btnExpand);
-	btnExploit.interaction.onMouseOut(btnExploit);
-	btnExterminate.interaction.onMouseOut(btnExterminate);
-
 	var btnOptions= new PIXI.Graphics();
 	btnOptions.update=function(){
 	};
 
-	btnOptions.interaction={
+	function btn_onMouseOver(){
+		this.e.clear();
+		this.e.beginFill(palette.color2);
+		this.e.lineStyle(1, palette.color2, 1);
+		this.e.drawRect(0,0,scale*10,scale*2);
+		this.e.endFill();
+		this.e.text.style.fill=palette.color1;
+	};
+	function btn_onMouseOut(){
+		this.e.clear();
+		this.e.beginFill(palette.color1);
+		this.e.lineStyle(1, palette.color2, 1);
+		this.e.drawRect(0,0,scale*10,scale*2);
+		this.e.endFill();
+		this.e.text.style.fill=palette.color2;
+	};
+
+	ui.hitboxes.push({
+		e:btnExplore,
+		w:scale*10,
+		h:scale*2,
+		onMouseOver:btn_onMouseOver,
+		onMouseOut:btn_onMouseOut,
+		onClick:function(){
+			postMessage(Date.now()+this.e.toString());
+			sounds["tick"].play();
+		}
+	});
+
+	ui.hitboxes.push({
+		e:btnExpand,
+		w:scale*10,
+		h:scale*2,
+		onMouseOver:btn_onMouseOver,
+		onMouseOut:btn_onMouseOut,
+		onClick:function(){
+			postMessage(Date.now()+this.e.toString());
+			sounds["tick"].play();
+		}
+	});
+	ui.hitboxes.push({
+		e:btnExploit,
+		w:scale*10,
+		h:scale*2,
+		onMouseOver:btn_onMouseOver,
+		onMouseOut:btn_onMouseOut,
+		onClick:function(){
+			postMessage(Date.now()+this.e.toString());
+			sounds["tick"].play();
+		}
+	});
+	ui.hitboxes.push({
+		e:btnExterminate,
+		w:scale*10,
+		h:scale*2,
+		onMouseOver:btn_onMouseOver,
+		onMouseOut:btn_onMouseOut,
+		onClick:function(){
+			postMessage(Date.now()+this.e.toString());
+			sounds["tick"].play();
+		}
+	});
+
+	ui.hitboxes.push({
+		e:btnOptions,
 		w:scale*2,
 		h:scale*2,
-		onMouseOver:function(self){
-			self.clear();
-			self.beginFill(palette.color2);
-			self.lineStyle(1, palette.color2, 1);
-			self.drawRect(0,0,scale*2,scale*2);
-			self.endFill();
+		onMouseOver:function(){
+			this.e.clear();
+			this.e.beginFill(palette.color2);
+			this.e.lineStyle(1, palette.color2, 1);
+			this.e.drawRect(0,0,scale*2,scale*2);
+			this.e.endFill();
 		},
-		onMouseOut:function(self){
-			self.clear();
-			self.beginFill(palette.color1);
-			self.lineStyle(1, palette.color2, 1);
-			self.drawRect(0,0,scale*2,scale*2);
-			self.endFill();
+		onMouseOut:function(){
+			this.e.clear();
+			this.e.beginFill(palette.color1);
+			this.e.lineStyle(1, palette.color2, 1);
+			this.e.drawRect(0,0,scale*2,scale*2);
+			this.e.endFill();
 		},
-		onClick:function(self){
+		onClick:function(){
 			toggleFullscreen();
 		}
-	};
-	btnOptions.interaction.onMouseOut(btnOptions);
+	});
+
+	for(var i=ui.hitboxes.length-5;i<ui.hitboxes.length;++i){
+		ui.hitboxes[i].onMouseOut();
+	}
 	
 	ui.addToLayout(btnExplore,true,false,scale,-scale*3);
 	ui.addToLayout(btnExpand,true,false,scale*12,-scale*3);
@@ -308,12 +324,9 @@ function setup(){
 	ui.addToLayout(btnOptions,false,false,-scale*3,-scale*3);
 
 
-	scene.addChild(game);
 
 
-
-
-
+	// ORBIT SETUP
 
 	
 	function drawOrbit(_g,_r){
@@ -372,30 +385,48 @@ function setup(){
 		orbits.push(orbit);
 		orbit.rotationSpeed=Math.random()*5000+1000;
 
-		orbit.draw=function(){
-			drawOrbit(this,this.r);
-		};
-
-		orbit.draw();
+		drawOrbit(orbit,orbit.r);
 
 		orbit.planetPoint=new PIXI.Container();
 		orbit.addChild(orbit.planetPoint);
 		orbit.planetPoint.x=orbit.r;
 	}
 
-	var planets=new PIXI.Container();
 	// setup planets
+	var planets=new PIXI.Container();
+	
+	function planet_onMouseOver(){
+		this.e.clear();
+		this.e.beginFill(palette.color2);
+		this.e.lineStyle(1,palette.color2,1);
+		this.e.drawCircle(0,0,this.e.r);
+		this.e.endFill();
+	};
+	function planet_onMouseOut(){
+		this.e.clear();
+		this.e.beginFill(palette.color1);
+		this.e.lineStyle(1,palette.color2,1);
+		this.e.drawCircle(0,0,this.e.r);
+		this.e.endFill();
+	};
+
 	for(var i=0;i < orbits.length;++i){
 		var orbit=orbits[i];
 		orbit.planet=new PIXI.Graphics();
 		orbit.planet.r=Math.random()*15+3;
 
-		orbit.planet.beginFill(palette.color1);
-		orbit.planet.lineStyle(1,palette.color2,1);
-		orbit.planet.drawCircle(0,0,orbit.planet.r);
-		orbit.planet.endFill();
-
 		planets.addChild(orbit.planet);
+
+		ui.hitcircles.push({
+			e:orbit.planet,
+			r:Math.max(orbit.planet.r,25),
+			onMouseOver:planet_onMouseOver,
+			onMouseOut:planet_onMouseOut,
+			onClick:function(){
+				postMessage("hey it's a planet");
+			}
+		});
+		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
 
 
@@ -449,7 +480,7 @@ function setup(){
 		}
 	};
 	ui.addToLayout(game.messages.messageBox,true,false,scale,-scale*(game.messages.displaySize+4));
-
+	// some test messages
 
 
 	var textArray = [].concat(
@@ -464,6 +495,7 @@ function setup(){
 
 
 
+	// SCENE HIERARCHY SETUP
 
 	game.addChild(game.center);
 	game.addChild(planets);
@@ -477,6 +509,9 @@ function setup(){
 	game.addChild(btnOptions);
 
 
+
+
+	scene.addChild(game);
 
 
 	// start the main loop
