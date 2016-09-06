@@ -300,12 +300,6 @@ function setup(){
 		}
 	};
 	btnOptions.interaction.onMouseOut(btnOptions);
-
-	game.addChild(btnExplore);
-	game.addChild(btnExpand);
-	game.addChild(btnExploit);
-	game.addChild(btnExterminate);
-	game.addChild(btnOptions);
 	
 	ui.addToLayout(btnExplore,true,false,scale,-scale*3);
 	ui.addToLayout(btnExpand,true,false,scale*12,-scale*3);
@@ -315,6 +309,86 @@ function setup(){
 
 
 	scene.addChild(game);
+
+
+
+
+
+
+	
+	function drawOrbit(_g,_r){
+		_g.clear();
+		var circumference=Math.PI*2*_r;
+
+		a1=0;
+		var skip=0;
+		for(var i=0; i<=circumference; i+=1){
+			skip+=1;
+			var a2=i/circumference*Math.PI*2;
+			if(skip<4){
+				_g.lineStyle(1,palette.color2,1);
+				_g.moveTo(_r*Math.cos(a1),_r*Math.sin(a1));
+				_g.lineTo(_r*Math.cos(a2),_r*Math.sin(a2));
+				//_g.arc(0,0,_r,a1,a2);
+				_g.endFill();
+			}else if(skip>=6){
+				skip=0;
+			}
+			a1=a2;
+		}
+	};
+
+	game.center=new PIXI.Container();
+
+	orbits=[];
+
+	// setup orbits
+	for(var i=0; i < 3; ++i){
+		var container=new PIXI.Container();
+		var orbit = new PIXI.Graphics();
+		orbit.r=Math.random()*150+10;
+		if(Math.random() > 0.5){
+			container.scale.x=Math.random()+1;
+			container.rotation=Math.random()-0.5;
+		}
+		container.addChild(orbit);
+		game.center.addChild(container);
+		orbits.push(orbit);
+		orbit.rotationSpeed=Math.random()*5000+1000;
+
+		orbit.draw=function(){
+			drawOrbit(this,this.r);
+		};
+
+		orbit.draw();
+
+		orbit.planetPoint=new PIXI.Container();
+		orbit.addChild(orbit.planetPoint);
+		orbit.planetPoint.x=orbit.r;
+	}
+
+	var planets=new PIXI.Container();
+	// setup planets
+	for(var i=0;i < orbits.length;++i){
+		var orbit=orbits[i];
+		orbit.planet=new PIXI.Graphics();
+		orbit.planet.r=Math.random()*15+3;
+
+		orbit.planet.beginFill(palette.color1);
+		orbit.planet.lineStyle(1,palette.color2,1);
+		orbit.planet.drawCircle(0,0,orbit.planet.r);
+		orbit.planet.endFill();
+
+		planets.addChild(orbit.planet);
+	}
+
+
+
+
+
+
+
+
 
 	game.messages={
 		messages:[],
@@ -358,8 +432,6 @@ function setup(){
 			}
 		}
 	};
-
-	game.addChild(game.messages.messageBox);
 	ui.addToLayout(game.messages.messageBox,true,false,scale,-scale*(game.messages.displaySize+4));
 
 
@@ -371,6 +443,23 @@ function setup(){
 		postMessage("..."),
 		postMessage("So hey, how's your day going?")
 	);
+
+
+
+
+
+
+	game.addChild(game.center);
+	game.addChild(planets);
+	
+	game.addChild(game.messages.messageBox);
+
+	game.addChild(btnExplore);
+	game.addChild(btnExpand);
+	game.addChild(btnExploit);
+	game.addChild(btnExterminate);
+	game.addChild(btnOptions);
+
 
 
 
@@ -389,10 +478,23 @@ function main(){
 
 	ui.update();
 
+	game.center.position.x=size[0]*2/3;
+	game.center.position.y=(size[1]-(scale*game.messages.displaySize+2))/2;
+	for(var i=0;i < orbits.length;++i){
+		var orbit=orbits[i];
+
+		//
+		orbit.rotation=curTime/orbit.rotationSpeed;
+		
+		// reposition planet on orbit
+		orbit.planet.position = orbit.planetPoint.toGlobal(new PIXI.Point(0,0));
+	}
+
 	// render
 	renderer.render(scene,renderTexture);
 	renderer.render(renderContainer);
 	requestAnimationFrame(main);
+
 	// log FPS
 	++fpsCounter;
 	if(fpsCounter>=100){
@@ -402,7 +504,6 @@ function main(){
 		fpsAverage=0;
 	}
 	fpsAverage+=1000/(curTime-lastTime);
-
 
 	lastTime=curTime;
 }
