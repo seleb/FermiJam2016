@@ -125,7 +125,8 @@ $(document).ready(function(){
 			antiAlias:true,
 			transparent:false,
 			resolution:1,
-			roundPixels:true}
+			roundPixels:false
+		}
 	);
 	renderer.visible=false;
 	renderer.backgroundColor = palette.color1;
@@ -154,13 +155,7 @@ $(document).ready(function(){
 	CustomFilter.prototype.constructor = CustomFilter;
 
 
-
-	PIXI.loader
-		.add('shader','assets/shader.frag');
-
-	PIXI.loader
-		.on("progress", loadProgressHandler)
-		.load(setup);
+	setup();
 });
 
 
@@ -185,10 +180,7 @@ function loadProgressHandler(loader, resource){
 }
 
 function setup(){
-	// called when loader completes
-	console.log("All files loaded");
-
-
+	
 	textStyle = {
 		fontFamily: 'gamefont',
 		fontSize:scale,
@@ -380,10 +372,6 @@ function setup(){
 		postMessage("So hey, how's your day going?")
 	);
 
-	// shader
-	/*var fragmentSrc = PIXI.loader.resources.shader.data;
-	filter = new CustomFilter(fragmentSrc);
-	renderSprite.filters = [filter];*/
 
 
 	// start the main loop
