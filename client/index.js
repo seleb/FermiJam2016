@@ -43,6 +43,9 @@ var ui={
 	}
 };
 
+
+var sounds=[];
+
 $(document).ready(function(){
 	$(document).on("mousemove",function(event){
 		mouse.pos=[event.clientX,event.clientY];
@@ -97,6 +100,21 @@ $(document).ready(function(){
 
 	// setup game
 	startTime=Date.now();
+	sounds["bgm"] = new Howl({
+		urls:["assets/audio/bgm.ogg"],
+		autoplay:true,
+		loop:true,
+		volume:0
+	});
+	sounds["bgm"].fadeIn(1,3000);
+	sounds["tick"] = new Howl({
+		urls:["assets/audio/tick.ogg"],
+		autoplay:false,
+		loop:false,
+		volume:1
+	});
+
+	//Howler.mute();
 
 	// create renderer
 	renderer = PIXI.autoDetectRenderer(
@@ -223,6 +241,7 @@ function setup(){
 		onMouseOut:btn_onMouseOut,
 		onClick:function(self){
 			postMessage(Date.now()+self.toString());
+			sounds["tick"].play();
 		}
 	};
 	btnExpand.interaction={
@@ -232,6 +251,7 @@ function setup(){
 		onMouseOut:btn_onMouseOut,
 		onClick:function(self){
 			postMessage(Date.now()+self.toString());
+			sounds["tick"].play();
 		}
 	};
 	btnExploit.interaction={
@@ -241,6 +261,7 @@ function setup(){
 		onMouseOut:btn_onMouseOut,
 		onClick:function(self){
 			postMessage(Date.now()+self.toString());
+			sounds["tick"].play();
 		}
 	};
 	btnExterminate.interaction={
@@ -250,6 +271,7 @@ function setup(){
 		onMouseOut:btn_onMouseOut,
 		onClick:function(self){
 			postMessage(Date.now()+self.toString());
+			sounds["tick"].play();
 		}
 	};
 
@@ -374,8 +396,6 @@ function setup(){
 
 function main(){
 	curTime=Date.now()-startTime;
-	}if(keys.isJustDown(keys.SPACE)){
-	}
 
 	ui.update();
 
