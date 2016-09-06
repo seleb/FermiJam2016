@@ -80,8 +80,10 @@ $(document).ready(function(){
 		}
 	});
 
-	$(document).on("mousewheel",function(event){
-		game.messages.scrollOffset += event.originalEvent.wheelDelta > 0 ? 1 : -1;
+	$(document).on("mousewheel DOMMouseScroll",function(event){
+		event=event.originalEvent;
+		var delta=event.detail||-event.wheelDelta;
+		game.messages.scrollOffset += delta > 0 ? -1 : 1;
 		game.messages.scrollOffset = clamp(0,game.messages.scrollOffset,game.messages.messages.length-game.messages.displaySize);
 	});
 
