@@ -346,9 +346,9 @@ function setup(){
 
 	star.beginFill(palette.color1);
 	star.lineStyle(1,palette.color2,1);
-	var points=Math.round(Math.random()*16+2)*4;
-	star.r1=Math.random()*25+5;
-	star.r2=star.r1+Math.random()*25+5;
+	var points=Math.round(Math.random()*8+2)*4;
+	star.r1=Math.random()*15+5;
+	star.r2=star.r1+Math.random()*15+10;
 	star.moveTo(star.r1,0);
 	for(var i=1; i<=points;++i){
 		var a=i/points*Math.PI*2;
