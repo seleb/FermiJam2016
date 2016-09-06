@@ -48,7 +48,7 @@ var sounds=[];
 
 $(document).ready(function(){
 	$(document).on("mousemove",function(event){
-		mouse.pos=[event.clientX,event.clientY];
+		mouse.pos=[event.pageX,event.pageY];
 		var prevElement = ui.currentElement;
 		ui.currentElement=null;
 		for(var i=0; i < ui.layoutElements.length; ++i){

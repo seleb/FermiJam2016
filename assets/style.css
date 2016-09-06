@@ -25,7 +25,13 @@ html,body,#display,canvas{
 	overflow:hidden;
 
 	min-width: 600px;
+	min-height: 600px;
 }
+
+html{
+	overflow:auto;
+}
+
 canvas{
 	display:none;
 	position:absolute;
