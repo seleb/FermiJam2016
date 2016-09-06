@@ -340,13 +340,29 @@ function setup(){
 
 	game.center=new PIXI.Container();
 
-	orbits=[];
+	// star
+	star=new PIXI.Graphics();
+	game.center.addChild(star);
+
+	star.beginFill(palette.color1);
+	star.lineStyle(1,palette.color2,1);
+	var points=Math.round(Math.random()*16+2)*4;
+	star.r1=Math.random()*25+5;
+	star.r2=star.r1+Math.random()*25+5;
+	star.moveTo(star.r1,0);
+	for(var i=1; i<=points;++i){
+		var a=i/points*Math.PI*2;
+		var r = i%2==0 ? star.r1 : star.r2;
+		star.lineTo(r*Math.cos(a),r*Math.sin(a));
+	}
+	star.endFill();
 
 	// setup orbits
+	orbits=[];
 	for(var i=0; i < 3; ++i){
 		var container=new PIXI.Container();
 		var orbit = new PIXI.Graphics();
-		orbit.r=Math.random()*150+10;
+		orbit.r=Math.random()*150+star.r2;
 		if(Math.random() > 0.5){
 			container.scale.x=Math.random()+1;
 			container.rotation=Math.random()-0.5;
@@ -478,6 +494,7 @@ function main(){
 
 	ui.update();
 
+	star.rotation=curTime/3000;
 	game.center.position.x=size[0]*2/3;
 	game.center.position.y=(size[1]-(scale*game.messages.displaySize+2))/2;
 	for(var i=0;i < orbits.length;++i){
