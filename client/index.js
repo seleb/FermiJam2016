@@ -15,26 +15,78 @@ var mouse={
 
 var size=[1280,720];
 
+var palette={
+	color1:0xEEEEEE,
+	color2:0x999999
+};
+
 var ui={
-	elements:[],
-	add:function(_ui,_fromLeft,_fromTop,_x,_y){
-		this.elements.push({
+	currentElement:null,
+	layoutElements:[],
+	
+
+	addToLayout:function(_ui,_fromLeft,_fromTop,_x,_y){
+		this.layoutElements.push({
 			ui: _ui,
 			from:[_fromLeft,_fromTop],
 			pos:[_x,_y]
 		});
-		layoutUI(this.elements.length-1);
+		layoutUI(this.layoutElements.length-1);
+	},
+
+
+	update:function(){
+		for(var i=0; i < ui.layoutElements.length; ++i){
+			var u=ui.layoutElements[i];
+			u.ui.update();
+		}
 	}
 };
 
 $(document).ready(function(){
 	$(document).on("mousemove",function(event){
 		mouse.pos=[event.clientX,event.clientY];
+		var prevElement = ui.currentElement;
+		ui.currentElement=null;
+		for(var i=0; i < ui.layoutElements.length; ++i){
+			var u=ui.layoutElements[i];
+			if(u.ui.interaction){
+				if(
+					mouse.pos[0] >= u.ui.position.x &&
+					mouse.pos[1] >= u.ui.position.y &&
+					mouse.pos[0] <= u.ui.position.x+u.ui.interaction.w &&
+					mouse.pos[1] <= u.ui.position.y*u.ui.interaction.h
+				){
+					ui.currentElement=u.ui;
+				}
+			}
+		}
+
+		if(prevElement!=ui.currentElement){
+			if(prevElement!=null){
+				prevElement.interaction.onMouseOut(prevElement);
+			}if(ui.currentElement!=null){
+				ui.currentElement.interaction.onMouseOver(ui.currentElement);
+			}
+		}
+
+		if(ui.currentElement!=null){
+			document.body.style.cursor = 'pointer';
+		}else{
+			document.body.style.cursor = 'auto';
+		}
 	});
 
 	$(document).on("mousewheel",function(event){
 		game.messages.scrollOffset += event.originalEvent.wheelDelta > 0 ? 1 : -1;
 		game.messages.scrollOffset = clamp(0,game.messages.scrollOffset,game.messages.messages.length-game.messages.displaySize);
+	});
+
+
+	$(document).on("click",function(event){
+		if(ui.currentElement!=null){
+			ui.currentElement.interaction.onClick(ui.currentElement);
+		}
 	});
 
 	// try to auto-focus and make sure the game can be focused with a click if run from an iframe
@@ -56,7 +108,7 @@ $(document).ready(function(){
 			roundPixels:true}
 	);
 	renderer.visible=false;
-	renderer.backgroundColor = 0xFFFFFF;
+	renderer.backgroundColor = palette.color1;
 	renderer.view.style.opacity = "0";
 
 	PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.LINEAR;
@@ -120,7 +172,7 @@ function setup(){
 	textStyle = {
 		fontFamily: 'gamefont',
 		fontSize:scale,
-		fill : '#999999',
+		fill : palette.color2,
 		dropShadow : false,
 		wordWrap : false
 	};
@@ -135,25 +187,7 @@ function setup(){
 
 		g.text=t;
 		g.update=function(){
-			g.clear();
-			if(
-				mouse.pos[0] > g.position.x &&
-				mouse.pos[1] > g.position.y &&
-				mouse.pos[0] < g.position.x+scale*10 &&
-				mouse.pos[1] < g.position.y*scale*2
-			){
-				g.beginFill(0x999999);
-				g.lineStyle(1, 0x999999, 1);
-				g.drawRect(0,0,scale*10,scale*2);
-				g.endFill();
-				t.style.fill='#FFFFFF';
-			}else{
-				g.beginFill(0xFFFFFF);
-				g.lineStyle(1, 0x999999, 1);
-				g.drawRect(0,0,scale*10,scale*2);
-				g.endFill();
-				t.style.fill='#999999';
-			}
+
 		};
 
 		return g;
@@ -164,26 +198,92 @@ function setup(){
 	var btnExploit=makeButton("exploit");
 	var btnExterminate=makeButton("exterminate");
 	
+
+	function btn_onMouseOver(self){
+		self.clear();
+		self.beginFill(palette.color2);
+		self.lineStyle(1, palette.color2, 1);
+		self.drawRect(0,0,scale*10,scale*2);
+		self.endFill();
+		self.text.style.fill=palette.color1;
+	};
+	function btn_onMouseOut(self){
+		self.clear();
+		self.beginFill(palette.color1);
+		self.lineStyle(1, palette.color2, 1);
+		self.drawRect(0,0,scale*10,scale*2);
+		self.endFill();
+		self.text.style.fill=palette.color2;
+	};
+
+	btnExplore.interaction={
+		w:scale*10,
+		h:scale*2,
+		onMouseOver:btn_onMouseOver,
+		onMouseOut:btn_onMouseOut,
+		onClick:function(self){
+			postMessage(Date.now()+self.toString());
+		}
+	};
+	btnExpand.interaction={
+		w:scale*10,
+		h:scale*2,
+		onMouseOver:btn_onMouseOver,
+		onMouseOut:btn_onMouseOut,
+		onClick:function(self){
+			postMessage(Date.now()+self.toString());
+		}
+	};
+	btnExploit.interaction={
+		w:scale*10,
+		h:scale*2,
+		onMouseOver:btn_onMouseOver,
+		onMouseOut:btn_onMouseOut,
+		onClick:function(self){
+			postMessage(Date.now()+self.toString());
+		}
+	};
+	btnExterminate.interaction={
+		w:scale*10,
+		h:scale*2,
+		onMouseOver:btn_onMouseOver,
+		onMouseOut:btn_onMouseOut,
+		onClick:function(self){
+			postMessage(Date.now()+self.toString());
+		}
+	};
+
+	btnExplore.interaction.onMouseOut(btnExplore);
+	btnExpand.interaction.onMouseOut(btnExpand);
+	btnExploit.interaction.onMouseOut(btnExploit);
+	btnExterminate.interaction.onMouseOut(btnExterminate);
+
 	var btnOptions= new PIXI.Graphics();
 	btnOptions.update=function(){
-		btnOptions.clear();
-			if(
-				mouse.pos[0] > btnOptions.position.x &&
-				mouse.pos[1] > btnOptions.position.y &&
-				mouse.pos[0] < btnOptions.position.x+scale*2 &&
-				mouse.pos[1] < btnOptions.position.y*scale*2
-			){
-				btnOptions.beginFill(0x999999);
-				btnOptions.lineStyle(1, 0x999999, 1);
-				btnOptions.drawRect(0,0,scale*2,scale*2);
-				btnOptions.endFill();
-			}else{
-				btnOptions.beginFill(0xFFFFFF);
-				btnOptions.lineStyle(1, 0x999999, 1);
-				btnOptions.drawRect(0,0,scale*2,scale*2);
-				btnOptions.endFill();
-			}
-	}
+	};
+
+	btnOptions.interaction={
+		w:scale*2,
+		h:scale*2,
+		onMouseOver:function(self){
+			self.clear();
+			self.beginFill(palette.color2);
+			self.lineStyle(1, palette.color2, 1);
+			self.drawRect(0,0,scale*2,scale*2);
+			self.endFill();
+		},
+		onMouseOut:function(self){
+			self.clear();
+			self.beginFill(palette.color1);
+			self.lineStyle(1, palette.color2, 1);
+			self.drawRect(0,0,scale*2,scale*2);
+			self.endFill();
+		},
+		onClick:function(self){
+			toggleFullscreen();
+		}
+	};
+	btnOptions.interaction.onMouseOut(btnOptions);
 
 	game.addChild(btnExplore);
 	game.addChild(btnExpand);
@@ -191,11 +291,11 @@ function setup(){
 	game.addChild(btnExterminate);
 	game.addChild(btnOptions);
 	
-	ui.add(btnExplore,true,false,scale,-scale*3);
-	ui.add(btnExpand,true,false,scale*12,-scale*3);
-	ui.add(btnExploit,true,false,scale*23,-scale*3);
-	ui.add(btnExterminate,true,false,scale*34,-scale*3);
-	ui.add(btnOptions,false,false,-scale*3,-scale*3);
+	ui.addToLayout(btnExplore,true,false,scale,-scale*3);
+	ui.addToLayout(btnExpand,true,false,scale*12,-scale*3);
+	ui.addToLayout(btnExploit,true,false,scale*23,-scale*3);
+	ui.addToLayout(btnExterminate,true,false,scale*34,-scale*3);
+	ui.addToLayout(btnOptions,false,false,-scale*3,-scale*3);
 
 
 	scene.addChild(game);
@@ -212,20 +312,20 @@ function setup(){
 		self.clear();
 		
 		// draw message box
-		self.beginFill(0xFFFFFF);
-		self.lineStyle(1, 0x999999, 1);
+		self.beginFill(palette.color1);
+		self.lineStyle(1, palette.color2, 1);
 		self.drawRect(0,0,scale*43,scale*game.messages.displaySize);
 		self.endFill();
 
 		// draw scrollbar thumb
-		self.beginFill(0xFFFFFF);
-		self.lineStyle(1, 0x999999, 1);
+		self.beginFill(palette.color1);
+		self.lineStyle(1, palette.color2, 1);
 		self.drawRect(scale*42,scale*(game.messages.displaySize-1)*(1-(game.messages.scrollOffset)/(game.messages.messages.length-game.messages.displaySize)),scale,scale);
 		self.endFill();
 
 		// line separating scrollbar from message area
-		self.beginFill(0xFFFFFF);
-		self.lineStyle(1, 0x999999, 1);
+		self.beginFill(palette.color1);
+		self.lineStyle(1, palette.color2, 1);
 		self.moveTo(scale*42,scale*game.messages.displaySize);
 		self.lineTo(scale*42,0);
 		self.endFill();
@@ -244,19 +344,17 @@ function setup(){
 	};
 
 	game.addChild(game.messages.messageBox);
-	ui.add(game.messages.messageBox,true,false,scale,-scale*(game.messages.displaySize+4));
+	ui.addToLayout(game.messages.messageBox,true,false,scale,-scale*(game.messages.displaySize+4));
 
 
 
 	var textArray = [].concat(
 		postMessage("This is a single line."),
 		postMessage("This is two lines in one.\nHere's the other one."),
-		postMessage("This is a long paragraph that probably shouldn't fit in a single line and will wrap around instead. In fact, it's so long that it should take up at least three lines on its own.")
+		postMessage("This is a long paragraph that probably shouldn't fit in a single line and will wrap around instead. In fact, it's so long that it should take up at least three lines on its own."),
+		postMessage("..."),
+		postMessage("So hey, how's your day going?")
 	);
-
-	setInterval(function(){
-		postMessage(Date.now().toString());
-	},500);
 
 	// shader
 	/*var fragmentSrc = PIXI.loader.resources.shader.data;
@@ -277,10 +375,9 @@ function setup(){
 function main(){
 	curTime=Date.now()-startTime;
 	}if(keys.isJustDown(keys.SPACE)){
-
-	for(var i=0; i < ui.elements.length; ++i){
-		ui.elements[i].ui.update();
 	}
+
+	ui.update();
 
 	// render
 	renderer.render(scene,renderTexture);
@@ -324,16 +421,16 @@ function onResize() {
 	},250);
 }
 
-// lays out all UI elements based on size
+// lays out all UI layoutElements based on size
 function layoutAll(){
-	for(var i=0; i < ui.elements.length; ++i){
+	for(var i=0; i < ui.layoutElements.length; ++i){
 		layoutUI(i);
 	}
 }
 
-// lays out UI elements based on size
+// lays out UI layoutElements based on size
 function layoutUI(_idx){
-	var u=ui.elements[_idx];
+	var u=ui.layoutElements[_idx];
 	u.ui.position.x = (u.from[0] ? 0 : size[0]) + u.pos[0];
 	u.ui.position.y = (u.from[1] ? 0 : size[1]) + u.pos[1];
 }
