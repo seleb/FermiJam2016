@@ -638,7 +638,7 @@ function planetIn_onClick(){
 		game.removeChild(game.planetarySystem);
 	}
 	game.planetarySystem=getPlanetarySystem(this.e);
-	game.addChild(game.planetarySystem);
+	game.addChildAt(game.planetarySystem,0);
 
 	game.solarSystem.viewTarget=-1;
 
@@ -665,7 +665,7 @@ function starIn_onClick(){
 		game.removeChild(game.solarSystem);
 	}
 	game.solarSystem=getSolarSystem(this.e);
-	game.addChild(game.solarSystem);
+	game.addChildAt(game.solarSystem,0);
 
 	game.galacticSystem.viewTarget=-1;
 
