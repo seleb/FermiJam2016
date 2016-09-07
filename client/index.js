@@ -370,9 +370,8 @@ function setup(){
 
 		renderOrbit(orbit,orbit.r);
 
-		orbit.planetPoint=new PIXI.Container();
-		orbit.addChild(orbit.planetPoint);
-		orbit.planetPoint.x=orbit.r;
+		// point on the orbit's radius to give us something to use in toGlobal call later
+		orbit.planetPoint=new PIXI.Point(orbit.r,0);
 	}
 
 	// setup planets
@@ -533,7 +532,7 @@ function main(){
 		orbit.rotation=curTime/orbit.rotationSpeed;
 		
 		// reposition planet on orbit
-		orbit.planet.position = orbit.planetPoint.toGlobal(new PIXI.Point(0,0));
+		orbit.planet.position = orbit.toGlobal(orbit.planetPoint);
 		orbit.planet.position.x-=game.solarSystem.position.x;
 		orbit.planet.position.y-=game.solarSystem.position.y;
 	}
