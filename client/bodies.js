@@ -44,8 +44,8 @@ function renderOrbit(_graphics,_radius){
 
 
 
-function getSolarSystem(seed){
-	var rng = new MersenneTwister(seed);
+function getSolarSystem(_seed){
+	var rng = new MersenneTwister(_seed);
 
 	var solarSystem=new PIXI.Container();
 	solarSystem.orbitDir=rng.real() > 0.5 ? -1 : 1;
@@ -88,7 +88,8 @@ function getSolarSystem(seed){
 
 		// planet
 		orbit.planet=new PIXI.Graphics();
-		orbit.planet.r=rng.real()*15+3;
+		orbit.planet.r=Math.round(rng.real()*15+3)+0.5;
+		orbit.planet.seed=rng.int();
 
 		solarSystem.planets.addChild(orbit.planet);
 
@@ -104,4 +105,18 @@ function getSolarSystem(seed){
 
 
 	return solarSystem;
+}
+
+
+function getPlanetarySystem(_planet){
+	var rng = new MersenneTwister(_planet.seed);
+
+	var planetarySystem=new PIXI.Container();
+
+	planetarySystem.planet=new PIXI.Graphics();
+	planetarySystem.planet.r=_planet.r*10;
+
+	planetarySystem.addChild(planetarySystem.planet);
+
+	return planetarySystem;
 }
