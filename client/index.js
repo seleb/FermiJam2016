@@ -331,40 +331,40 @@ function setup(){
 	ui.addToLayout(btnOptions,false,false,-scale*3,-scale*3);
 
 
-
+	var rng = new MersenneTwister(startTime);
 
 	// ORBIT SETUP
 	game.solarSystem=new PIXI.Container();
-	game.solarSystem.orbitDir=Math.random() > 0.5 ? -1 : 1;
+	game.solarSystem.orbitDir=rng.real() > 0.5 ? -1 : 1;
 	game.solarSystem.center=new PIXI.Container();
 
 	// star
 	game.solarSystem.star=new PIXI.Graphics();
-	game.solarSystem.star.rotationSpeed=(Math.random()*5000+1000)*game.solarSystem.orbitDir;
+	game.solarSystem.star.rotationSpeed=(rng.real()*5000+1000)*game.solarSystem.orbitDir;
 	game.solarSystem.center.addChild(game.solarSystem.star);
 
 
-	game.solarSystem.star.points=Math.round(Math.random()*8+2)*4;
-	game.solarSystem.star.r1=Math.random()*15+5;
-	game.solarSystem.star.r2=game.solarSystem.star.r1+Math.random()*15+10;
+	game.solarSystem.star.points=Math.round(rng.real()*8+2)*4;
+	game.solarSystem.star.r1=rng.real()*15+5;
+	game.solarSystem.star.r2=game.solarSystem.star.r1+rng.real()*15+10;
 
 	// setup orbits
 	orbits=[];
-	for(var i=0; i < Math.random()*20; ++i){
+	for(var i=0; i < rng.real()*20; ++i){
 		var container=new PIXI.Container();
 		var orbit = new PIXI.Graphics();
-		orbit.r=Math.random()*150+game.solarSystem.star.r2;
-		if(Math.random() > 0.5){
-			container.scale.x=Math.random()+1;
-			container.rotation=Math.random()-0.5;
+		orbit.r=rng.real()*150+game.solarSystem.star.r2;
+		if(rng.real() > 0.5){
+			container.scale.x=rng.real()+1;
+			container.rotation=rng.real()-0.5;
 		}
 		container.addChild(orbit);
 		game.solarSystem.center.addChild(container);
 		orbits.push(orbit);
-		orbit.rotationSpeed=(Math.random()*5000+1000)*game.solarSystem.orbitDir;
+		orbit.rotationSpeed=(rng.real()*5000+1000)*game.solarSystem.orbitDir;
 
 		// reverse orbit
-		if(Math.random() < 0.01){
+		if(rng.real() < 0.01){
 			orbit.rotationSpeed*=-1;
 		}
 
@@ -391,7 +391,7 @@ function setup(){
 	for(var i=0;i < orbits.length;++i){
 		var orbit=orbits[i];
 		orbit.planet=new PIXI.Graphics();
-		orbit.planet.r=Math.random()*15+3;
+		orbit.planet.r=rng.real()*15+3;
 
 		game.solarSystem.planets.addChild(orbit.planet);
 
