@@ -1,16 +1,20 @@
-function renderGalaxy(_graphics,_points,_radiusInner,_radiusOuter,_filled){
+function renderGalaxy(_graphics,_radius,_arms,_curve){
 	_graphics.clear();
-	_graphics.beginFill(_filled ? palette.color2 : palette.color1);
-	if(!_filled){
+
+	_radius=200;
+	var segments=_radius*_curve/10;
+	for(var a=0; a<_arms; ++a){ 
 		_graphics.lineStyle(1,palette.color2);
+		_graphics.moveTo(0,0);
+		var r=0;
+		var angle=a/_arms*Math.PI*2;
+		for(var i = 1; i <= segments; ++i){
+			r=i/segments;
+			angle+=_curve/segments;
+			_graphics.lineTo(Math.cos(angle)*r*_radius,Math.sin(angle)*r*_radius);
+		}
+		_graphics.endFill();
 	}
-	_graphics.moveTo(_radiusInner,0);
-	for(var i=1; i<=_points;++i){
-		var a=i/_points*Math.PI*2;
-		var r = i%2==0 ? _radiusInner : _radiusOuter;
-		_graphics.lineTo(r*Math.cos(a),r*Math.sin(a));
-	}
-	_graphics.endFill();
 }
 
 function renderStar(_graphics,_points,_radiusInner,_radiusOuter,_filled){
@@ -69,6 +73,10 @@ function getGalacticSystem(_seed){
 	galacticSystem.center=new PIXI.Graphics();
 	galacticSystem.center.rotationSpeed=(rng.real()*3000+5000)*galacticSystem.orbitDir;
 	galacticSystem.center.r=10;
+	galacticSystem.center.arms=Math.round(rng.real()*6+2);
+	galacticSystem.center.curve=rng.real()*5+1;
+
+	renderGalaxy(galacticSystem.center,galacticSystem.center.r,galacticSystem.center.arms,galacticSystem.center.curve);
 
 	// setup orbits
 	galacticSystem.stars=[];
