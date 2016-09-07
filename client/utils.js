@@ -1,3 +1,7 @@
+function lerp(from,to,t){
+	return from+(to-from)*t;
+}
+
 function clamp(min,v,max){
 	return Math.max(min,Math.min(v,max));
 }

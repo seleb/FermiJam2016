@@ -12,6 +12,7 @@ var scale=12;
 var mouse={
 	pos:[0,0]
 };
+var offset=[0,0];
 
 var size=[1280,720];
 
@@ -436,8 +437,10 @@ function main(){
 			}
 			v.viewEased=ease(v.view);
 
-			v.position.x=size[0]*2/3 + v.viewEased*size[0];
-			v.position.y=(size[1]-(scale*game.messages.displaySize+2))/2;
+			offset[0]=lerp(offset[0],(0.5-mouse.pos[0]/size[0])*32 + Math.sin(curTime/2222)*16,0.05);
+			offset[1]=lerp(offset[1],(0.5-mouse.pos[1]/size[1])*32 + Math.sin(curTime/3333)*16,0.05);
+			v.position.x=size[0]*2/3 + v.viewEased*size[0] + offset[0];
+			v.position.y=(size[1]-(scale*game.messages.displaySize+2))/2 + offset[1];
 		}
 	}
 
