@@ -385,6 +385,10 @@ function setup(){
 		renderPlanet(this.e, this.e.r, false);
 	};
 
+	// sort orbits by radius for (more) consistent layering of planets
+	// order: inner planets on top of outer planets
+	orbits.sort(function(a,b){return b.r - a.r;});
+
 	for(var i=0;i < orbits.length;++i){
 		var orbit=orbits[i];
 		orbit.planet=new PIXI.Graphics();
