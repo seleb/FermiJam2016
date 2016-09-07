@@ -1,7 +1,9 @@
 function renderStar(_graphics,_points,_radiusInner,_radiusOuter,_filled){
 	_graphics.clear();
 	_graphics.beginFill(_filled ? palette.color2 : palette.color1);
-	_graphics.lineStyle(1,palette.color2,1);
+	if(!_filled){
+		_graphics.lineStyle(1,palette.color2);
+	}
 	_graphics.moveTo(_radiusInner,0);
 	for(var i=1; i<=_points;++i){
 		var a=i/_points*Math.PI*2;
@@ -15,7 +17,9 @@ function renderStar(_graphics,_points,_radiusInner,_radiusOuter,_filled){
 function renderPlanet(_graphics,_radius,_filled){
 	_graphics.clear();
 	_graphics.beginFill(_filled ? palette.color2 : palette.color1);
-	_graphics.lineStyle(1,palette.color2,1);
+	if(!_filled){
+		_graphics.lineStyle(1,palette.color2);
+	}
 	_graphics.drawCircle(0,0,_radius);
 	_graphics.endFill();
 }
