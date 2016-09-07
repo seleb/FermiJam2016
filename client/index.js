@@ -379,7 +379,7 @@ function setup(){
 
 	// setup orbits
 	orbits=[];
-	for(var i=0; i < 3; ++i){
+	for(var i=0; i < Math.random()*20; ++i){
 		var container=new PIXI.Container();
 		var orbit = new PIXI.Graphics();
 		orbit.r=Math.random()*150+star.r2;
