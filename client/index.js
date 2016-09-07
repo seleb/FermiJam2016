@@ -740,15 +740,4 @@ function galacticSystem_initInteraction(){
 		});
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
-
-	ui.hitcircles.push({
-		e:game.galacticSystem.center,
-		r:Math.max(game.galacticSystem.center.r,25),
-		onMouseOver:planet_onMouseOver,
-		onMouseOut:planet_onMouseOut,
-		onClick:function(){
-			postMessage("hey it's a galactic center");
-		}
-	});
-	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 }
