@@ -457,19 +457,15 @@ function main(){
 		}
 	}
 
-	// spin star
+	// spin galaxy
 	if(game.galacticSystem!=null){
-		game.galacticSystem.star.rotation=curTime/game.galacticSystem.star.rotationSpeed;
-		for(var i=0;i < game.galacticSystem.orbits.length;++i){
-			var orbit=game.galacticSystem.orbits[i];
+		game.galacticSystem.center.rotation=curTime/game.galacticSystem.center.rotationSpeed;
+	
+		for(var i=0;i < game.galacticSystem.stars.length;++i){
+			var star= game.galacticSystem.stars[i];
 
-			// spin orbit
-			orbit.rotation=curTime/orbit.rotationSpeed;
-			
-			// reposition planet on orbit
-			orbit.planet.position = orbit.toGlobal(orbit.planetPoint);
-			orbit.planet.position.x-=game.galacticSystem.position.x;
-			orbit.planet.position.y-=game.galacticSystem.position.y;
+			// spin stars
+			star.rotation=curTime/star.rotationSpeed;
 		}
 	}
 	
@@ -732,24 +728,24 @@ function solarSystem_initInteraction(){
 function galacticSystem_initInteraction(){
 	console.log('switching to galactic system view');
 	ui.hitcircles=[];
-	for(var i=0;i < game.galacticSystem.orbits.length;++i){
-		var orbit=game.galacticSystem.orbits[i];
+	for(var i=0;i < game.galacticSystem.stars.length;++i){
+		var star=game.galacticSystem.stars[i];
 
 		ui.hitcircles.push({
-			e:orbit.planet,
-			r:Math.max(orbit.planet.r,25),
-			onMouseOver:planet_onMouseOver,
-			onMouseOut:planet_onMouseOut,
+			e:star,
+			r:Math.max(star.r2,25),
+			onMouseOver:star_onMouseOver,
+			onMouseOut:star_onMouseOut,
 			onClick:starIn_onClick
 		});
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
 
 	ui.hitcircles.push({
-		e:game.galacticSystem.star,
-		r:Math.max(game.galacticSystem.star.r2,25),
-		onMouseOver:star_onMouseOver,
-		onMouseOut:star_onMouseOut,
+		e:game.galacticSystem.center,
+		r:Math.max(game.galacticSystem.center.r,25),
+		onMouseOver:planet_onMouseOver,
+		onMouseOut:planet_onMouseOut,
 		onClick:function(){
 			postMessage("hey it's a galactic center");
 		}
