@@ -334,68 +334,37 @@ function setup(){
 
 
 	// ORBIT SETUP
-
-	
-	function drawOrbit(_g,_r){
-		_g.clear();
-		var circumference=Math.PI*2*_r;
-
-		a1=0;
-		var skip=0;
-		for(var i=0; i<=circumference; i+=1){
-			skip+=1;
-			var a2=i/circumference*Math.PI*2;
-			if(skip<4){
-				_g.lineStyle(1,palette.color2,1);
-				_g.moveTo(_r*Math.cos(a1),_r*Math.sin(a1));
-				_g.lineTo(_r*Math.cos(a2),_r*Math.sin(a2));
-				//_g.arc(0,0,_r,a1,a2);
-				_g.endFill();
-			}else if(skip>=6){
-				skip=0;
-			}
-			a1=a2;
-		}
-	};
-
-	game.center=new PIXI.Container();
+	game.solarSystem=new PIXI.Container();
+	game.solarSystem.center=new PIXI.Container();
 
 	// star
-	star=new PIXI.Graphics();
-	game.center.addChild(star);
+	game.solarSystem.star=new PIXI.Graphics();
+	game.solarSystem.center.addChild(game.solarSystem.star);
 
-	star.beginFill(palette.color1);
-	star.lineStyle(1,palette.color2,1);
-	var points=Math.round(Math.random()*8+2)*4;
-	star.r1=Math.random()*15+5;
-	star.r2=star.r1+Math.random()*15+10;
-	star.moveTo(star.r1,0);
-	for(var i=1; i<=points;++i){
-		var a=i/points*Math.PI*2;
-		var r = i%2==0 ? star.r1 : star.r2;
-		star.lineTo(r*Math.cos(a),r*Math.sin(a));
-	}
-	star.endFill();
+
+	game.solarSystem.star.points=Math.round(Math.random()*8+2)*4;
+	game.solarSystem.star.r1=Math.random()*15+5;
+	game.solarSystem.star.r2=game.solarSystem.star.r1+Math.random()*15+10;
 
 	// setup orbits
 	orbits=[];
 	for(var i=0; i < Math.random()*20; ++i){
 		var container=new PIXI.Container();
 		var orbit = new PIXI.Graphics();
-		orbit.r=Math.random()*150+star.r2;
+		orbit.r=Math.random()*150+game.solarSystem.star.r2;
 		if(Math.random() > 0.5){
 			container.scale.x=Math.random()+1;
 			container.rotation=Math.random()-0.5;
 		}
 		container.addChild(orbit);
-		game.center.addChild(container);
+		game.solarSystem.center.addChild(container);
 		orbits.push(orbit);
 		orbit.rotationSpeed=Math.random()*5000+1000;
 		if(Math.random() < 0.1){
 			orbit.rotationSpeed*=-1;
 		}
 
-		drawOrbit(orbit,orbit.r);
+		renderOrbit(orbit,orbit.r);
 
 		orbit.planetPoint=new PIXI.Container();
 		orbit.addChild(orbit.planetPoint);
@@ -403,21 +372,13 @@ function setup(){
 	}
 
 	// setup planets
-	var planets=new PIXI.Container();
+	game.solarSystem.planets=new PIXI.Container();
 	
 	function planet_onMouseOver(){
-		this.e.clear();
-		this.e.beginFill(palette.color2);
-		this.e.lineStyle(1,palette.color2,1);
-		this.e.drawCircle(0,0,this.e.r);
-		this.e.endFill();
+		renderPlanet(this.e, this.e.r, true);
 	};
 	function planet_onMouseOut(){
-		this.e.clear();
-		this.e.beginFill(palette.color1);
-		this.e.lineStyle(1,palette.color2,1);
-		this.e.drawCircle(0,0,this.e.r);
-		this.e.endFill();
+		renderPlanet(this.e, this.e.r, false);
 	};
 
 	for(var i=0;i < orbits.length;++i){
@@ -425,7 +386,7 @@ function setup(){
 		orbit.planet=new PIXI.Graphics();
 		orbit.planet.r=Math.random()*15+3;
 
-		planets.addChild(orbit.planet);
+		game.solarSystem.planets.addChild(orbit.planet);
 
 		ui.hitcircles.push({
 			e:orbit.planet,
@@ -439,13 +400,26 @@ function setup(){
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
 
+	ui.hitcircles.push({
+		e:game.solarSystem.star,
+		r:Math.max(game.solarSystem.star.r2,25),
+		onMouseOver:function(){
+			renderStar(this.e,this.e.points,this.e.r1,this.e.r2,true);
+		},
+		onMouseOut:function(){
+			renderStar(this.e,this.e.points,this.e.r1,this.e.r2,false);
+		},
+		onClick:function(){
+			postMessage("hey it's a star");
+		}
+	});
+	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 
 
 
 
 
-
-
+	// MESSAGE SETUP
 
 	game.messages={
 		messages:[],
@@ -507,8 +481,9 @@ function setup(){
 
 	// SCENE HIERARCHY SETUP
 
-	game.addChild(game.center);
-	game.addChild(planets);
+	game.solarSystem.addChild(game.solarSystem.center);
+	game.solarSystem.addChild(game.solarSystem.planets);
+	game.addChild(game.solarSystem);
 	
 	game.addChild(game.messages.messageBox);
 
@@ -539,9 +514,10 @@ function main(){
 
 	ui.update();
 
-	star.rotation=curTime/3000;
-	game.center.position.x=size[0]*2/3;
-	game.center.position.y=(size[1]-(scale*game.messages.displaySize+2))/2;
+	game.solarSystem.star.rotation=curTime/3000;
+	game.solarSystem.position.x=size[0]*2/3;
+	game.solarSystem.position.x+=Math.sin(curTime/2000)*50;
+	game.solarSystem.position.y=(size[1]-(scale*game.messages.displaySize+2))/2;
 	for(var i=0;i < orbits.length;++i){
 		var orbit=orbits[i];
 
