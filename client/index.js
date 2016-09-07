@@ -335,10 +335,12 @@ function setup(){
 
 	// ORBIT SETUP
 	game.solarSystem=new PIXI.Container();
+	game.solarSystem.orbitDir=Math.random() > 0.5 ? -1 : 1;
 	game.solarSystem.center=new PIXI.Container();
 
 	// star
 	game.solarSystem.star=new PIXI.Graphics();
+	game.solarSystem.star.rotationSpeed=(Math.random()*5000+1000)*game.solarSystem.orbitDir;
 	game.solarSystem.center.addChild(game.solarSystem.star);
 
 
@@ -359,8 +361,10 @@ function setup(){
 		container.addChild(orbit);
 		game.solarSystem.center.addChild(container);
 		orbits.push(orbit);
-		orbit.rotationSpeed=Math.random()*5000+1000;
-		if(Math.random() < 0.1){
+		orbit.rotationSpeed=(Math.random()*5000+1000)*game.solarSystem.orbitDir;
+
+		// reverse orbit
+		if(Math.random() < 0.01){
 			orbit.rotationSpeed*=-1;
 		}
 
@@ -514,7 +518,7 @@ function main(){
 
 	ui.update();
 
-	game.solarSystem.star.rotation=curTime/3000;
+	game.solarSystem.star.rotation=curTime/game.solarSystem.star.rotationSpeed;
 	game.solarSystem.position.x=size[0]*2/3;
 	game.solarSystem.position.x+=Math.sin(curTime/2000)*50;
 	game.solarSystem.position.y=(size[1]-(scale*game.messages.displaySize+2))/2;
