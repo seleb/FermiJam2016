@@ -42,18 +42,25 @@ var ui={
 		ui.currentElement=null;
 		for(var i=0; i < ui.hitboxes.length; ++i){
 			var u=ui.hitboxes[i];
+			var p=new PIXI.Point(0,0);
+			p=u.e.toGlobal(p);
 			if(
-				mouse.pos[0] >= u.e.position.x &&
-				mouse.pos[1] >= u.e.position.y &&
-				mouse.pos[0] <= u.e.position.x+u.w &&
-				mouse.pos[1] <= u.e.position.y+u.h
+				mouse.pos[0] >= p.x &&
+				mouse.pos[1] >= p.y &&
+				mouse.pos[0] <= p.x+u.w &&
+				mouse.pos[1] <= p.y+u.h
 			){
 				ui.currentElement=u;
 			}
 		}
+		var curr=Infinity;
 		for(var i=0; i < ui.hitcircles.length; ++i){
 			var u=ui.hitcircles[i];
-			if(Math.pow(mouse.pos[0]-u.e.position.x,2)+Math.pow(mouse.pos[1]-u.e.position.y,2) <= u.r*u.r){
+			var p=new PIXI.Point(0,0);
+			p=u.e.toGlobal(p);
+			var r=Math.pow(mouse.pos[0]-p.x,2)+Math.pow(mouse.pos[1]-p.y,2);
+			if(r <= u.r*u.r && r < curr){
+				curr=r;
 				ui.currentElement=u;
 			}
 		}
