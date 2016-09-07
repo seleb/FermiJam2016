@@ -67,7 +67,19 @@ function getSolarSystem(_seed){
 	for(var i=0; i < rng.real()*20; ++i){
 		var container=new PIXI.Container();
 		var orbit = new PIXI.Graphics();
-		orbit.r=rng.real()*150+solarSystem.star.r2;
+
+		// planet
+		orbit.planet=new PIXI.Graphics();
+		orbit.planet.r=Math.round(rng.real()*15+2)+0.5;
+
+		// big planet
+		if(orbit.planet.r > 15 && rng.real() < 0.05){
+			orbit.planet.r*=2;
+		}
+
+		orbit.planet.seed=rng.int();
+
+		orbit.r=rng.real()*150+solarSystem.star.r2+orbit.planet.r;
 		orbit.rotationSpeed=(rng.real()*5000+1000)*solarSystem.orbitDir;
 
 		// reverse orbit
@@ -85,11 +97,6 @@ function getSolarSystem(_seed){
 
 		// point on the orbit's radius to give us something to use in toGlobal call later
 		orbit.planetPoint=new PIXI.Point(orbit.r,0);
-
-		// planet
-		orbit.planet=new PIXI.Graphics();
-		orbit.planet.r=Math.round(rng.real()*15+3)+0.5;
-		orbit.planet.seed=rng.int();
 
 		solarSystem.planets.addChild(orbit.planet);
 
@@ -114,7 +121,7 @@ function getPlanetarySystem(_planet){
 	var planetarySystem=new PIXI.Container();
 
 	planetarySystem.planet=new PIXI.Graphics();
-	planetarySystem.planet.r=_planet.r*10;
+	planetarySystem.planet.r=_planet.r*5;
 
 	planetarySystem.addChild(planetarySystem.planet);
 
