@@ -526,6 +526,8 @@ function main(){
 		
 		// reposition planet on orbit
 		orbit.planet.position = orbit.planetPoint.toGlobal(new PIXI.Point(0,0));
+		orbit.planet.position.x-=game.solarSystem.position.x;
+		orbit.planet.position.y-=game.solarSystem.position.y;
 	}
 
 	// render
