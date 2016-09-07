@@ -391,6 +391,9 @@ function setup(){
 		game.center.addChild(container);
 		orbits.push(orbit);
 		orbit.rotationSpeed=Math.random()*5000+1000;
+		if(Math.random() < 0.1){
+			orbit.rotationSpeed*=-1;
+		}
 
 		drawOrbit(orbit,orbit.r);
 
