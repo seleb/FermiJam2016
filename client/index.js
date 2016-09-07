@@ -132,7 +132,7 @@ $(document).ready(function(){
 		volume:1
 	});
 
-	//Howler.mute();
+	Howler.mute();
 
 	// create renderer
 	renderer = PIXI.autoDetectRenderer(
@@ -315,20 +315,19 @@ function setup(){
 	ui.addToLayout(btnOptions,false,false,-scale*3,-scale*3);
 
 	game.views=[];
-	game.solarSystem=getSolarSystem(startTime);
-	game.solarSystem.view=0;
-	game.solarSystem.viewTarget=0;
-	game.views.push(game.solarSystem);
-	
-	game.views.SOLAR=0;
-	game.views.PLANET=1;
-
-
-	solarSystem_initInteraction();
-
-
+	game.solarSystem=null;
 	game.planetarySystem=null;
+	game.galacticSystem=getGalacticSystem(startTime);
+	game.galacticSystem.view=0;
+	game.galacticSystem.viewTarget=0;
+	game.views.push(game.galacticSystem);
+	
+	game.views.GALAXY=0;
+	game.views.SOLAR=1;
+	game.views.PLANET=2;
 
+
+	galacticSystem_initInteraction();
 
 	// MESSAGE SETUP
 
@@ -392,9 +391,7 @@ function setup(){
 
 	// SCENE HIERARCHY SETUP
 
-	game.solarSystem.addChild(game.solarSystem.center);
-	game.solarSystem.addChild(game.solarSystem.planets);
-	game.addChild(game.solarSystem);
+	game.addChild(game.galacticSystem);
 	
 	game.addChild(game.messages.messageBox);
 
@@ -445,18 +442,37 @@ function main(){
 	}
 
 	// spin star
-	game.solarSystem.star.rotation=curTime/game.solarSystem.star.rotationSpeed;
-	for(var i=0;i < game.solarSystem.orbits.length;++i){
-		var orbit=game.solarSystem.orbits[i];
+	if(game.solarSystem!=null){
+		game.solarSystem.star.rotation=curTime/game.solarSystem.star.rotationSpeed;
+		for(var i=0;i < game.solarSystem.orbits.length;++i){
+			var orbit=game.solarSystem.orbits[i];
 
-		// spin orbit
-		orbit.rotation=curTime/orbit.rotationSpeed;
-		
-		// reposition planet on orbit
-		orbit.planet.position = orbit.toGlobal(orbit.planetPoint);
-		orbit.planet.position.x-=game.solarSystem.position.x;
-		orbit.planet.position.y-=game.solarSystem.position.y;
+			// spin orbit
+			orbit.rotation=curTime/orbit.rotationSpeed;
+			
+			// reposition planet on orbit
+			orbit.planet.position = orbit.toGlobal(orbit.planetPoint);
+			orbit.planet.position.x-=game.solarSystem.position.x;
+			orbit.planet.position.y-=game.solarSystem.position.y;
+		}
 	}
+
+	// spin star
+	if(game.galacticSystem!=null){
+		game.galacticSystem.star.rotation=curTime/game.galacticSystem.star.rotationSpeed;
+		for(var i=0;i < game.galacticSystem.orbits.length;++i){
+			var orbit=game.galacticSystem.orbits[i];
+
+			// spin orbit
+			orbit.rotation=curTime/orbit.rotationSpeed;
+			
+			// reposition planet on orbit
+			orbit.planet.position = orbit.toGlobal(orbit.planetPoint);
+			orbit.planet.position.x-=game.galacticSystem.position.x;
+			orbit.planet.position.y-=game.galacticSystem.position.y;
+		}
+	}
+	
 
 	// render
 	renderer.render(scene,renderTexture);
@@ -645,8 +661,32 @@ function planetOut_onClick(){
 	solarSystem_initInteraction();
 }
 
+function starIn_onClick(){
+	postMessage("hey it's a star");
 
+	if(game.solarSystem!==null){
+		game.views[game.views.SOLAR]=null;
+		game.removeChild(game.solarSystem);
+	}
+	game.solarSystem=getSolarSystem(this.e);
+	game.addChild(game.solarSystem);
 
+	game.galacticSystem.viewTarget=-1;
+
+	game.solarSystem.viewTarget=0;
+	game.solarSystem.view=1;
+	game.views.push(game.solarSystem);
+
+	solarSystem_initInteraction();
+}
+
+function starOut_onClick(){
+	postMessage("hey it's a star");
+	game.solarSystem.viewTarget=1;
+	game.galacticSystem.viewTarget=0;
+
+	galacticSystem_initInteraction();
+}
 
 
 
@@ -685,8 +725,33 @@ function solarSystem_initInteraction(){
 		r:Math.max(game.solarSystem.star.r2,25),
 		onMouseOver:star_onMouseOver,
 		onMouseOut:star_onMouseOut,
+		onClick:starOut_onClick
+	});
+	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
+}
+function galacticSystem_initInteraction(){
+	console.log('switching to galactic system view');
+	ui.hitcircles=[];
+	for(var i=0;i < game.galacticSystem.orbits.length;++i){
+		var orbit=game.galacticSystem.orbits[i];
+
+		ui.hitcircles.push({
+			e:orbit.planet,
+			r:Math.max(orbit.planet.r,25),
+			onMouseOver:planet_onMouseOver,
+			onMouseOut:planet_onMouseOut,
+			onClick:starIn_onClick
+		});
+		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
+	}
+
+	ui.hitcircles.push({
+		e:game.galacticSystem.star,
+		r:Math.max(game.galacticSystem.star.r2,25),
+		onMouseOver:star_onMouseOver,
+		onMouseOut:star_onMouseOut,
 		onClick:function(){
-			postMessage("hey it's a star");
+			postMessage("hey it's a galactic center");
 		}
 	});
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
