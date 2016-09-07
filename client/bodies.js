@@ -41,3 +41,67 @@ function renderOrbit(_graphics,_radius){
 		a1=a2;
 	}
 };
+
+
+
+function getSolarSystem(seed){
+	var rng = new MersenneTwister(seed);
+
+	var solarSystem=new PIXI.Container();
+	solarSystem.orbitDir=rng.real() > 0.5 ? -1 : 1;
+	solarSystem.center=new PIXI.Container();
+	solarSystem.planets=new PIXI.Container();
+
+	// star
+	solarSystem.star=new PIXI.Graphics();
+	solarSystem.star.rotationSpeed=(rng.real()*5000+1000)*solarSystem.orbitDir;
+	solarSystem.center.addChild(solarSystem.star);
+
+
+	solarSystem.star.points=Math.round(rng.real()*8+2)*4;
+	solarSystem.star.r1=rng.real()*15+5;
+	solarSystem.star.r2=solarSystem.star.r1+rng.real()*15+10;
+
+	// setup orbits
+	solarSystem.orbits=[];
+	for(var i=0; i < rng.real()*20; ++i){
+		var container=new PIXI.Container();
+		var orbit = new PIXI.Graphics();
+		orbit.r=rng.real()*150+solarSystem.star.r2;
+		orbit.rotationSpeed=(rng.real()*5000+1000)*solarSystem.orbitDir;
+
+		// reverse orbit
+		if(rng.real() < 0.01){
+			orbit.rotationSpeed*=-1;
+		}
+
+		// elliptical orbit
+		if(rng.real() > 0.5){
+			container.scale.x=rng.real()+1;
+			container.rotation=rng.real()-0.5;
+		}
+
+		renderOrbit(orbit,orbit.r);
+
+		// point on the orbit's radius to give us something to use in toGlobal call later
+		orbit.planetPoint=new PIXI.Point(orbit.r,0);
+
+		// planet
+		orbit.planet=new PIXI.Graphics();
+		orbit.planet.r=rng.real()*15+3;
+
+		solarSystem.planets.addChild(orbit.planet);
+
+		// add to scene
+		solarSystem.orbits.push(orbit);
+		solarSystem.center.addChild(container);
+		container.addChild(orbit);
+	}
+
+	// sort orbits by radius for (more) consistent layering of planets
+	// order: inner planets on top of outer planets
+	solarSystem.orbits.sort(function(a,b){return b.r - a.r;});
+
+
+	return solarSystem;
+}

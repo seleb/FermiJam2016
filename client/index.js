@@ -234,23 +234,6 @@ function setup(){
 	btnOptions.update=function(){
 	};
 
-	function btn_onMouseOver(){
-		this.e.clear();
-		this.e.beginFill(palette.color2);
-		this.e.lineStyle(1, palette.color2, 1);
-		this.e.drawRect(0,0,scale*10,scale*2);
-		this.e.endFill();
-		this.e.text.style.fill=palette.color1;
-	};
-	function btn_onMouseOut(){
-		this.e.clear();
-		this.e.beginFill(palette.color1);
-		this.e.lineStyle(1, palette.color2, 1);
-		this.e.drawRect(0,0,scale*10,scale*2);
-		this.e.endFill();
-		this.e.text.style.fill=palette.color2;
-	};
-
 	ui.hitboxes.push({
 		e:btnExplore,
 		w:scale*10,
@@ -331,69 +314,11 @@ function setup(){
 	ui.addToLayout(btnOptions,false,false,-scale*3,-scale*3);
 
 
-	var rng = new MersenneTwister(startTime);
+	game.solarSystem=getSolarSystem(startTime);
 
-	// ORBIT SETUP
-	game.solarSystem=new PIXI.Container();
-	game.solarSystem.orbitDir=rng.real() > 0.5 ? -1 : 1;
-	game.solarSystem.center=new PIXI.Container();
-
-	// star
-	game.solarSystem.star=new PIXI.Graphics();
-	game.solarSystem.star.rotationSpeed=(rng.real()*5000+1000)*game.solarSystem.orbitDir;
-	game.solarSystem.center.addChild(game.solarSystem.star);
-
-
-	game.solarSystem.star.points=Math.round(rng.real()*8+2)*4;
-	game.solarSystem.star.r1=rng.real()*15+5;
-	game.solarSystem.star.r2=game.solarSystem.star.r1+rng.real()*15+10;
-
-	// setup orbits
-	orbits=[];
-	for(var i=0; i < rng.real()*20; ++i){
-		var container=new PIXI.Container();
-		var orbit = new PIXI.Graphics();
-		orbit.r=rng.real()*150+game.solarSystem.star.r2;
-		if(rng.real() > 0.5){
-			container.scale.x=rng.real()+1;
-			container.rotation=rng.real()-0.5;
-		}
-		container.addChild(orbit);
-		game.solarSystem.center.addChild(container);
-		orbits.push(orbit);
-		orbit.rotationSpeed=(rng.real()*5000+1000)*game.solarSystem.orbitDir;
-
-		// reverse orbit
-		if(rng.real() < 0.01){
-			orbit.rotationSpeed*=-1;
-		}
-
-		renderOrbit(orbit,orbit.r);
-
-		// point on the orbit's radius to give us something to use in toGlobal call later
-		orbit.planetPoint=new PIXI.Point(orbit.r,0);
-	}
-
-	// setup planets
-	game.solarSystem.planets=new PIXI.Container();
-	
-	function planet_onMouseOver(){
-		renderPlanet(this.e, this.e.r, true);
-	};
-	function planet_onMouseOut(){
-		renderPlanet(this.e, this.e.r, false);
-	};
-
-	// sort orbits by radius for (more) consistent layering of planets
-	// order: inner planets on top of outer planets
-	orbits.sort(function(a,b){return b.r - a.r;});
-
-	for(var i=0;i < orbits.length;++i){
-		var orbit=orbits[i];
-		orbit.planet=new PIXI.Graphics();
-		orbit.planet.r=rng.real()*15+3;
-
-		game.solarSystem.planets.addChild(orbit.planet);
+	// solar system interaction
+	for(var i=0;i < game.solarSystem.orbits.length;++i){
+		var orbit=game.solarSystem.orbits[i];
 
 		ui.hitcircles.push({
 			e:orbit.planet,
@@ -410,18 +335,14 @@ function setup(){
 	ui.hitcircles.push({
 		e:game.solarSystem.star,
 		r:Math.max(game.solarSystem.star.r2,25),
-		onMouseOver:function(){
-			renderStar(this.e,this.e.points,this.e.r1,this.e.r2,true);
-		},
-		onMouseOut:function(){
-			renderStar(this.e,this.e.points,this.e.r1,this.e.r2,false);
-		},
+		onMouseOver:star_onMouseOver,
+		onMouseOut:star_onMouseOut,
 		onClick:function(){
 			postMessage("hey it's a star");
 		}
 	});
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
-
+	game.planetarySystem=new PIXI.Container();
 
 
 
@@ -521,14 +442,17 @@ function main(){
 
 	ui.update();
 
-	game.solarSystem.star.rotation=curTime/game.solarSystem.star.rotationSpeed;
+	// reposition solar system
 	game.solarSystem.position.x=size[0]*2/3;
 	game.solarSystem.position.x+=Math.sin(curTime/2000)*50;
 	game.solarSystem.position.y=(size[1]-(scale*game.messages.displaySize+2))/2;
-	for(var i=0;i < orbits.length;++i){
-		var orbit=orbits[i];
+	
+	// spin star
+	game.solarSystem.star.rotation=curTime/game.solarSystem.star.rotationSpeed;
+	for(var i=0;i < game.solarSystem.orbits.length;++i){
+		var orbit=game.solarSystem.orbits[i];
 
-		//
+		// spin orbit
 		orbit.rotation=curTime/orbit.rotationSpeed;
 		
 		// reposition planet on orbit
@@ -657,3 +581,39 @@ function postMessage(_str){
 
 	return res;
 }
+
+
+
+
+
+
+function btn_onMouseOver(){
+	this.e.clear();
+	this.e.beginFill(palette.color2);
+	this.e.lineStyle(1, palette.color2, 1);
+	this.e.drawRect(0,0,scale*10,scale*2);
+	this.e.endFill();
+	this.e.text.style.fill=palette.color1;
+};
+function btn_onMouseOut(){
+	this.e.clear();
+	this.e.beginFill(palette.color1);
+	this.e.lineStyle(1, palette.color2, 1);
+	this.e.drawRect(0,0,scale*10,scale*2);
+	this.e.endFill();
+	this.e.text.style.fill=palette.color2;
+};
+
+function planet_onMouseOver(){
+	renderPlanet(this.e, this.e.r, true);
+};
+function planet_onMouseOut(){
+	renderPlanet(this.e, this.e.r, false);
+};
+
+function star_onMouseOver(){
+	renderStar(this.e,this.e.points,this.e.r1,this.e.r2,true);
+};
+function star_onMouseOut(){
+	renderStar(this.e,this.e.points,this.e.r1,this.e.r2,false);
+};
