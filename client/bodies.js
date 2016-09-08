@@ -48,12 +48,12 @@ function renderOrbit(_graphics,_radius){
 	for(var i=0; i<=circumference; i+=1){
 		skip+=1;
 		var a2=i/circumference*Math.PI*2;
-		if(skip<4){
+		if(skip<vars.misc.dash[0]){
 			_graphics.lineStyle(1,palette.color2,1);
 			_graphics.moveTo(_radius*Math.cos(a1),_radius*Math.sin(a1));
 			_graphics.lineTo(_radius*Math.cos(a2),_radius*Math.sin(a2));
 			_graphics.endFill();
-		}else if(skip>=6){
+		}else if(skip>=vars.misc.dash[1]){
 			skip=0;
 		}
 		a1=a2;
@@ -65,9 +65,9 @@ function getGalacticSystem(_seed){
 
 	var galacticSystem=new PIXI.Container();
 	galacticSystem.seed=rng.int();
-	galacticSystem.orbitDir=rng.real() > 0.5 ? -1 : 1;
+	galacticSystem.orbitDir=rng.real() > vars.chance.galaxy_reverse_orbit ? -1 : 1;
 	galacticSystem.center=new PIXI.Graphics();
-	galacticSystem.center.rotationSpeed=(rng.real()*3000+5000)*galacticSystem.orbitDir;
+	galacticSystem.center.rotationSpeed=range(rng, vars.range.galaxy_rotation_speed)*galacticSystem.orbitDir;
 	galacticSystem.center.r=range(rng, vars.range.galaxy_radius);
 	galacticSystem.center.curve=range(rng, vars.range.galaxy_curve);
 
@@ -83,10 +83,13 @@ function getGalacticSystem(_seed){
 		var angle=a/galacticSystem.center.arms.length*Math.PI*2;
 		for(var i = 1; i <= segments; ++i){
 			r=i/segments;
-			angle+=galacticSystem.center.curve/segments;
+			angle+=galacticSystem.center.curve/segments*(-galacticSystem.orbitDir);
 			var p=[Math.cos(angle)*r*galacticSystem.center.r,Math.sin(angle)*r*galacticSystem.center.r];
 			galacticSystem.center.arms[a].push(p);
-			galacticSystem.center.starPoints.push(p);
+			if(i > 2){
+				// ignore first couple points because they're too close to the center
+				galacticSystem.center.starPoints.push(p);
+			}
 		}
 	}
 
@@ -96,10 +99,11 @@ function getGalacticSystem(_seed){
 
 	// setup orbits
 	galacticSystem.stars=[];
-	var numStars=Math.min(rng.real()*20+10, galacticSystem.center.starPoints.length);
+	var numStars=Math.min(range(rng, vars.range.galaxy_num_stars), galacticSystem.center.starPoints.length);
 	for(var i=0; i < numStars; ++i){
 		var star = new PIXI.Graphics();
 
+		// star type
 		star.pointType=2;
 		if(rng.real() < vars.chance.star_round){
 			star.pointType=1;
@@ -108,9 +112,9 @@ function getGalacticSystem(_seed){
 		}
 
 		star.points=Math.round(range(rng,vars.range.star_points))*star.pointType;
-		star.r1=range(rng,vars.range.star_radius_inner);
-		star.r2=star.r1+range(rng,vars.range.star_radius_outer);
-		star.rotationSpeed=(rng.real()*5000+1000)*galacticSystem.orbitDir;
+		star.radius_inner=range(rng,vars.range.star_radius_inner);
+		star.radius_outer=star.radius_inner+range(rng,vars.range.star_radius_outer);
+		star.rotationSpeed=range(rng,vars.range.star_rotation_speed)*galacticSystem.orbitDir;
 		if(rng.real() < vars.chance.star_reverse_orbit){
 			star.rotationSpeed*=-1;
 		}
@@ -118,7 +122,7 @@ function getGalacticSystem(_seed){
 		star.seed=rng.int();
 		star.a=rng.real()*Math.PI*2;
 
-		var p=rng.int()%(galacticSystem.center.starPoints.length-2)+2;
+		var p=rng.int()%galacticSystem.center.starPoints.length; // random point somewhere on the galaxy arms
 
 		star.position.x=galacticSystem.center.starPoints[p][0];
 		star.position.y=galacticSystem.center.starPoints[p][1];
@@ -154,8 +158,8 @@ function getSolarSystem(_star){
 
 	solarSystem.star.pointType=_star.pointType;
 	solarSystem.star.points=_star.points;
-	solarSystem.star.r1=_star.r1*vars.misc.star_zoom;
-	solarSystem.star.r2=_star.r2*vars.misc.star_zoom;
+	solarSystem.star.radius_inner=_star.radius_inner*vars.misc.star_zoom;
+	solarSystem.star.radius_outer=_star.radius_outer*vars.misc.star_zoom;
 
 	// setup orbits
 	solarSystem.orbits=[];
@@ -174,8 +178,8 @@ function getSolarSystem(_star){
 
 		orbit.planet.seed=rng.int();
 
-		orbit.r=range(rng, vars.range.orbit_radius)+solarSystem.star.r2+orbit.planet.r;
-		orbit.rotationSpeed=(rng.real()*5000+1000)*solarSystem.orbitDir;
+		orbit.r=range(rng, vars.range.orbit_radius)+solarSystem.star.radius_outer+orbit.planet.r;
+		orbit.rotationSpeed=range(rng,vars.range.orbit_rotation_speed)*solarSystem.orbitDir;
 
 		// reverse orbit
 		if(rng.real() < vars.chance.planet_reverse_orbit){
@@ -183,9 +187,9 @@ function getSolarSystem(_star){
 		}
 
 		// elliptical orbit
-		if(rng.real() > 0.5){
-			container.scale.x=rng.real()+1;
-			container.rotation=rng.real()-0.5;
+		if(rng.real() > vars.chance.orbit_elliptical){
+			container.scale.x=range(rng, vars.range.orbit_elliptical_scale);
+			container.rotation=range(rng, vars.range.orbit_elliptical_rotation);
 		}
 
 		renderOrbit(orbit,orbit.r);

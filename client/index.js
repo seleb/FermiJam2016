@@ -7,8 +7,6 @@ var scene = new PIXI.Container();
 
 var resizeTimeout=null;
 
-var scale=12;
-
 var mouse={
 	pos:[0,0]
 };
@@ -100,7 +98,7 @@ $(document).ready(function(){
 		event=event.originalEvent;
 		var delta=event.detail||-event.wheelDelta;
 		game.messages.scrollOffset += delta > 0 ? -1 : 1;
-		game.messages.scrollOffset = clamp(0,game.messages.scrollOffset,game.messages.messages.length-game.messages.displaySize);
+		game.messages.scrollOffset = clamp(0,game.messages.scrollOffset,game.messages.messages.length-vars.misc.message_displaySize);
 	});
 
 
@@ -199,7 +197,7 @@ function setup(){
 	
 	textStyle = {
 		fontFamily: 'Courier New, monospace',
-		fontSize:scale,
+		fontSize:vars.misc.ui_scale+'px',
 		fill : palette.color2,
 		dropShadow : false,
 		wordWrap : false
@@ -210,8 +208,8 @@ function setup(){
 
 		var t = new PIXI.Text(_text, textStyle);
 		g.addChild(t);
-		t.position.y=scale/2;
-		t.position.x=scale*5-_text.length*scale/3.4;
+		t.position.y=vars.misc.ui_scale/2;
+		t.position.x=vars.misc.ui_scale*5-_text.length*vars.misc.ui_scale/3.4;
 
 		g.text=t;
 		g.update=function(){
@@ -237,8 +235,8 @@ function setup(){
 
 	ui.hitboxes.push({
 		e:btnExplore,
-		w:scale*10,
-		h:scale*2,
+		w:vars.misc.ui_scale*10,
+		h:vars.misc.ui_scale*2,
 		onMouseOver:btn_onMouseOver,
 		onMouseOut:btn_onMouseOut,
 		onClick:explore_onClick
@@ -246,24 +244,24 @@ function setup(){
 
 	ui.hitboxes.push({
 		e:btnExpand,
-		w:scale*10,
-		h:scale*2,
+		w:vars.misc.ui_scale*10,
+		h:vars.misc.ui_scale*2,
 		onMouseOver:btn_onMouseOver,
 		onMouseOut:btn_onMouseOut,
 		onClick:expand_onClick
 	});
 	ui.hitboxes.push({
 		e:btnExploit,
-		w:scale*10,
-		h:scale*2,
+		w:vars.misc.ui_scale*10,
+		h:vars.misc.ui_scale*2,
 		onMouseOver:btn_onMouseOver,
 		onMouseOut:btn_onMouseOut,
 		onClick:exploit_onClick
 	});
 	ui.hitboxes.push({
 		e:btnExterminate,
-		w:scale*10,
-		h:scale*2,
+		w:vars.misc.ui_scale*10,
+		h:vars.misc.ui_scale*2,
 		onMouseOver:btn_onMouseOver,
 		onMouseOut:btn_onMouseOut,
 		onClick:exterminate_onClick
@@ -271,20 +269,20 @@ function setup(){
 
 	ui.hitboxes.push({
 		e:btnOptions,
-		w:scale*2,
-		h:scale*2,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
 		onMouseOver:function(){
 			this.e.clear();
 			this.e.beginFill(palette.color2);
 			this.e.lineStyle(1, palette.color2, 1);
-			this.e.drawRect(0,0,scale*2,scale*2);
+			this.e.drawRect(0,0,vars.misc.ui_scale*2,vars.misc.ui_scale*2);
 			this.e.endFill();
 		},
 		onMouseOut:function(){
 			this.e.clear();
 			this.e.beginFill(palette.color1);
 			this.e.lineStyle(1, palette.color2, 1);
-			this.e.drawRect(0,0,scale*2,scale*2);
+			this.e.drawRect(0,0,vars.misc.ui_scale*2,vars.misc.ui_scale*2);
 			this.e.endFill();
 		},
 		onClick:function(){
@@ -296,11 +294,11 @@ function setup(){
 		ui.hitboxes[i].onMouseOut();
 	}
 	
-	ui.addToLayout(btnExplore,true,false,scale,-scale*3);
-	ui.addToLayout(btnExpand,true,false,scale*12,-scale*3);
-	ui.addToLayout(btnExploit,true,false,scale*23,-scale*3);
-	ui.addToLayout(btnExterminate,true,false,scale*34,-scale*3);
-	ui.addToLayout(btnOptions,false,false,-scale*3,-scale*3);
+	ui.addToLayout(btnExplore,true,false,vars.misc.ui_scale,-vars.misc.ui_scale*3);
+	ui.addToLayout(btnExpand,true,false,vars.misc.ui_scale*12,-vars.misc.ui_scale*3);
+	ui.addToLayout(btnExploit,true,false,vars.misc.ui_scale*23,-vars.misc.ui_scale*3);
+	ui.addToLayout(btnExterminate,true,false,vars.misc.ui_scale*34,-vars.misc.ui_scale*3);
+	ui.addToLayout(btnOptions,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*3);
 
 	game.views=[];
 	game.solarSystem=null;
@@ -323,9 +321,7 @@ function setup(){
 	game.messages={
 		messages:[],
 		messageBox:new PIXI.Graphics(),
-		scrollOffset:0,
-		bufferSize:20,
-		displaySize:8
+		scrollOffset:0
 	};
 	game.messages.messageBox.update=function(){
 		var self=game.messages.messageBox;
@@ -334,35 +330,35 @@ function setup(){
 		// draw message box
 		self.beginFill(palette.color1);
 		self.lineStyle(1, palette.color2, 1);
-		self.drawRect(0,0,scale*43,scale*game.messages.displaySize);
+		self.drawRect(0,0,vars.misc.ui_scale*43,vars.misc.ui_scale*vars.misc.message_displaySize);
 		self.endFill();
 
 		// draw scrollbar thumb
 		self.beginFill(palette.color1);
 		self.lineStyle(1, palette.color2, 1);
-		self.drawRect(scale*42,scale*(game.messages.displaySize-1)*(1-(game.messages.scrollOffset)/(game.messages.messages.length-game.messages.displaySize)),scale,scale);
+		self.drawRect(vars.misc.ui_scale*42,vars.misc.ui_scale*(vars.misc.message_displaySize-1)*(1-(game.messages.scrollOffset)/(game.messages.messages.length-vars.misc.message_displaySize)),vars.misc.ui_scale,vars.misc.ui_scale);
 		self.endFill();
 
 		// line separating scrollbar from message area
 		self.beginFill(palette.color1);
 		self.lineStyle(1, palette.color2, 1);
-		self.moveTo(scale*42,scale*game.messages.displaySize);
-		self.lineTo(scale*42,0);
+		self.moveTo(vars.misc.ui_scale*42,vars.misc.ui_scale*vars.misc.message_displaySize);
+		self.lineTo(vars.misc.ui_scale*42,0);
 		self.endFill();
 
 
 
 		for(var i=0; i<game.messages.messages.length;++i){
 			var o=i-game.messages.scrollOffset;
-			if(o >= 0 && o < game.messages.displaySize){
-				game.messages.messages[i].position.y=scale*(game.messages.displaySize-o);
+			if(o >= 0 && o < vars.misc.message_displaySize){
+				game.messages.messages[i].position.y=vars.misc.ui_scale*(vars.misc.message_displaySize-o);
 				game.messages.messages[i].visible=true;
 			}else{
 				game.messages.messages[i].visible=false;
 			}
 		}
 	};
-	ui.addToLayout(game.messages.messageBox,true,false,scale,-scale*(game.messages.displaySize+4));
+	ui.addToLayout(game.messages.messageBox,true,false,vars.misc.ui_scale,-vars.misc.ui_scale*(vars.misc.message_displaySize+4));
 	// some test messages
 
 
@@ -419,14 +415,14 @@ function main(){
 			if(Math.abs(d) < 0.001){
 				v.view=v.viewTarget;
 			}else{
-				v.view += (d > 0 ? 1 : -1) / 60;
+				v.view += (d > 0 ? 1 : -1) * vars.misc.transition_speed;
 			}
 			v.viewEased=ease(v.view);
 
 			offset[0]=lerp(offset[0],(0.5-mouse.pos[0]/size[0])*32 + Math.sin(curTime/2222)*16,0.05);
 			offset[1]=lerp(offset[1],(0.5-mouse.pos[1]/size[1])*32 + Math.sin(curTime/3333)*16,0.05);
 			v.position.x=size[0]*2/3 + v.viewEased*size[0] + offset[0];
-			v.position.y=(size[1]-(scale*game.messages.displaySize+2))/2 + offset[1];
+			v.position.y=(size[1]-(vars.misc.ui_scale*vars.misc.message_displaySize+2))/2 + offset[1];
 		}
 	}
 
@@ -544,7 +540,7 @@ function postMessage(_str){
 	var lines=[];
 	_str="";
 	while(words.length > 0){
-		if(_str.length + words[0].length+5> scale*5.6){
+		if((_str.length + words[0].length+5)*0.4 > 27){
 			lines.unshift(_str);
 			_str="";
 		}else{
@@ -564,7 +560,7 @@ function postMessage(_str){
 		_str=lines[0];
 		if(l>1){
 			// multiline message
-			while(_str.length+5 <= scale*5.6){
+			while((_str.length+5)*0.4 <= 27){
 				_str+=" ";
 			}
 			if(lines.length==1){
@@ -581,8 +577,8 @@ function postMessage(_str){
 			_str="//"+_str;
 		}
 		var t = new PIXI.Text(_str, textStyle);
-		t.position.y=scale*(4+lines.length);
-		t.position.x=scale;
+		t.position.y=vars.misc.ui_scale*(4+lines.length);
+		t.position.x=vars.misc.ui_scale;
 		t.anchor.y=1;
 
 		lines=lines.slice(1);
@@ -592,7 +588,7 @@ function postMessage(_str){
 
 	game.messages.messages=res.concat(game.messages.messages);
 
-	while(game.messages.messages.length > game.messages.bufferSize){
+	while(game.messages.messages.length > vars.misc.message_bufferSize){
 		game.messages.messageBox.removeChild(game.messages.messages.pop());
 	}
 
@@ -608,7 +604,7 @@ function btn_onMouseOver(){
 	this.e.clear();
 	this.e.beginFill(palette.color2);
 	this.e.lineStyle(1, palette.color2, 1);
-	this.e.drawRect(0,0,scale*10,scale*2);
+	this.e.drawRect(0,0,vars.misc.ui_scale*10,vars.misc.ui_scale*2);
 	this.e.endFill();
 	this.e.text.style.fill=palette.color1;
 };
@@ -616,7 +612,7 @@ function btn_onMouseOut(){
 	this.e.clear();
 	this.e.beginFill(palette.color1);
 	this.e.lineStyle(1, palette.color2, 1);
-	this.e.drawRect(0,0,scale*10,scale*2);
+	this.e.drawRect(0,0,vars.misc.ui_scale*10,vars.misc.ui_scale*2);
 	this.e.endFill();
 	this.e.text.style.fill=palette.color2;
 };
@@ -629,10 +625,10 @@ function planet_onMouseOut(){
 };
 
 function star_onMouseOver(){
-	renderStar(this.e,this.e.points,this.e.pointType,this.e.r1,this.e.r2,true);
+	renderStar(this.e,this.e.points,this.e.pointType,this.e.radius_inner,this.e.radius_outer,true);
 };
 function star_onMouseOut(){
-	renderStar(this.e,this.e.points,this.e.pointType,this.e.r1,this.e.r2,false);
+	renderStar(this.e,this.e.points,this.e.pointType,this.e.radius_inner,this.e.radius_outer,false);
 };
 
 
@@ -774,7 +770,7 @@ function planetarySystem_initInteraction(){
 	ui.hitcircles=[];
 	ui.hitcircles.push({
 		e:game.planetarySystem.planet,
-		r:Math.max(game.planetarySystem.planet.r,25),
+		r:Math.max(game.planetarySystem.planet.r,vars.misc.min_interaction_radius),
 		onMouseOver:planet_onMouseOver,
 		onMouseOut:planet_onMouseOut,
 		onClick:planetOut_onClick
@@ -792,7 +788,7 @@ function solarSystem_initInteraction(){
 
 		ui.hitcircles.push({
 			e:orbit.planet,
-			r:Math.max(orbit.planet.r,25),
+			r:Math.max(orbit.planet.r,vars.misc.min_interaction_radius),
 			onMouseOver:planet_onMouseOver,
 			onMouseOut:planet_onMouseOut,
 			onClick:planetIn_onClick
@@ -802,7 +798,7 @@ function solarSystem_initInteraction(){
 
 	ui.hitcircles.push({
 		e:game.solarSystem.star,
-		r:Math.max(game.solarSystem.star.r2,25),
+		r:Math.max(game.solarSystem.star.radius_outer,vars.misc.min_interaction_radius),
 		onMouseOver:star_onMouseOver,
 		onMouseOut:star_onMouseOut,
 		onClick:starOut_onClick
@@ -820,7 +816,7 @@ function galacticSystem_initInteraction(){
 
 		ui.hitcircles.push({
 			e:star,
-			r:Math.max(star.r2,25),
+			r:Math.max(star.radius_outer,vars.misc.min_interaction_radius),
 			onMouseOver:star_onMouseOver,
 			onMouseOut:star_onMouseOut,
 			onClick:starIn_onClick
