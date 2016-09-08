@@ -241,10 +241,7 @@ function setup(){
 		h:scale*2,
 		onMouseOver:btn_onMouseOver,
 		onMouseOut:btn_onMouseOut,
-		onClick:function(){
-			postMessage(Date.now()+this.e.toString());
-			sounds["tick"].play();
-		}
+		onClick:explore_onClick
 	});
 
 	ui.hitboxes.push({
@@ -253,10 +250,7 @@ function setup(){
 		h:scale*2,
 		onMouseOver:btn_onMouseOver,
 		onMouseOut:btn_onMouseOut,
-		onClick:function(){
-			postMessage(Date.now()+this.e.toString());
-			sounds["tick"].play();
-		}
+		onClick:expand_onClick
 	});
 	ui.hitboxes.push({
 		e:btnExploit,
@@ -264,10 +258,7 @@ function setup(){
 		h:scale*2,
 		onMouseOver:btn_onMouseOver,
 		onMouseOut:btn_onMouseOut,
-		onClick:function(){
-			postMessage(Date.now()+this.e.toString());
-			sounds["tick"].play();
-		}
+		onClick:exploit_onClick
 	});
 	ui.hitboxes.push({
 		e:btnExterminate,
@@ -275,10 +266,7 @@ function setup(){
 		h:scale*2,
 		onMouseOver:btn_onMouseOver,
 		onMouseOut:btn_onMouseOut,
-		onClick:function(){
-			postMessage(Date.now()+this.e.toString());
-			sounds["tick"].play();
-		}
+		onClick:exterminate_onClick
 	});
 
 	ui.hitboxes.push({
@@ -613,7 +601,7 @@ function postMessage(_str){
 
 
 
-
+// hover stuff
 
 function btn_onMouseOver(){
 	this.e.clear();
@@ -646,6 +634,18 @@ function star_onMouseOut(){
 	renderStar(this.e,this.e.points,this.e.r1,this.e.r2,false);
 };
 
+
+
+// click stuff
+
+function explore_onClick(){
+}
+function expand_onClick(){
+}
+function exploit_onClick(){
+}
+function exterminate_onClick(){
+}
 
 
 
@@ -749,7 +749,7 @@ function galacticSystem_initInteraction(){
 	ui.hitcircles=[];
 	for(var i=0;i < game.galacticSystem.stars.length;++i){
 		var star=game.galacticSystem.stars[i];
-
+// hitcircle stuff
 		ui.hitcircles.push({
 			e:star,
 			r:Math.max(star.r2,25),
