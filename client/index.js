@@ -77,13 +77,6 @@ var ui={
 		}else{
 			document.body.style.cursor = 'auto';
 		}
-
-
-		// update ui elements
-		for(var i=0; i < ui.layoutElements.length; ++i){
-			var u=ui.layoutElements[i];
-			u.ui.update();
-		}
 	}
 };
 
@@ -225,49 +218,7 @@ function setup(){
 
 	// UI SETUP
 
-	var btnExplore=makeButton("explore");
-	var btnExpand=makeButton("expand");
-	var btnExploit=makeButton("exploit");
-	var btnExterminate=makeButton("exterminate");
-	
-
 	var btnOptions= new PIXI.Graphics();
-	btnOptions.update=function(){
-	};
-
-	ui.hitboxes.push({
-		e:btnExplore,
-		w:vars.misc.ui_scale*10,
-		h:vars.misc.ui_scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:explore_onClick
-	});
-
-	ui.hitboxes.push({
-		e:btnExpand,
-		w:vars.misc.ui_scale*10,
-		h:vars.misc.ui_scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:expand_onClick
-	});
-	ui.hitboxes.push({
-		e:btnExploit,
-		w:vars.misc.ui_scale*10,
-		h:vars.misc.ui_scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:exploit_onClick
-	});
-	ui.hitboxes.push({
-		e:btnExterminate,
-		w:vars.misc.ui_scale*10,
-		h:vars.misc.ui_scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:exterminate_onClick
-	});
 
 	ui.hitboxes.push({
 		e:btnOptions,
@@ -292,14 +243,10 @@ function setup(){
 		}
 	});
 
-	for(var i=ui.hitboxes.length-5;i<ui.hitboxes.length;++i){
+	for(var i=0;i<ui.hitboxes.length;++i){
 		ui.hitboxes[i].onMouseOut();
 	}
 	
-	ui.addToLayout(btnExplore,true,false,vars.misc.ui_scale,-vars.misc.ui_scale*3);
-	ui.addToLayout(btnExpand,true,false,vars.misc.ui_scale*12,-vars.misc.ui_scale*3);
-	ui.addToLayout(btnExploit,true,false,vars.misc.ui_scale*23,-vars.misc.ui_scale*3);
-	ui.addToLayout(btnExterminate,true,false,vars.misc.ui_scale*34,-vars.misc.ui_scale*3);
 	ui.addToLayout(btnOptions,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*3);
 
 	game.views=[];
@@ -318,74 +265,10 @@ function setup(){
 
 	galacticSystem_initInteraction();
 
-	// MESSAGE SETUP
-
-	game.messages={
-		messages:[],
-		messageBox:new PIXI.Graphics(),
-		scrollOffset:0
-	};
-	game.messages.messageBox.update=function(){
-		var self=game.messages.messageBox;
-		self.clear();
-		
-		// draw message box
-		self.beginFill(palette.color1);
-		self.lineStyle(1, palette.color2, 1);
-		self.drawRect(0,0,vars.misc.ui_scale*43,vars.misc.ui_scale*vars.misc.message_displaySize);
-		self.endFill();
-
-		// draw scrollbar thumb
-		self.beginFill(palette.color1);
-		self.lineStyle(1, palette.color2, 1);
-		self.drawRect(vars.misc.ui_scale*42,vars.misc.ui_scale*(vars.misc.message_displaySize-1)*(1-(game.messages.scrollOffset)/(game.messages.messages.length-vars.misc.message_displaySize)),vars.misc.ui_scale,vars.misc.ui_scale);
-		self.endFill();
-
-		// line separating scrollbar from message area
-		self.beginFill(palette.color1);
-		self.lineStyle(1, palette.color2, 1);
-		self.moveTo(vars.misc.ui_scale*42,vars.misc.ui_scale*vars.misc.message_displaySize);
-		self.lineTo(vars.misc.ui_scale*42,0);
-		self.endFill();
-
-
-
-		for(var i=0; i<game.messages.messages.length;++i){
-			var o=i-game.messages.scrollOffset;
-			if(o >= 0 && o < vars.misc.message_displaySize){
-				game.messages.messages[i].position.y=vars.misc.ui_scale*(vars.misc.message_displaySize-o);
-				game.messages.messages[i].visible=true;
-			}else{
-				game.messages.messages[i].visible=false;
-			}
-		}
-	};
-	ui.addToLayout(game.messages.messageBox,true,false,vars.misc.ui_scale,-vars.misc.ui_scale*(vars.misc.message_displaySize+4));
-	// some test messages
-
-
-	var textArray = [].concat(
-		postMessage("This is a single line."),
-		postMessage("This is two lines in one.\nHere's the other one."),
-		postMessage("This is a long paragraph that probably shouldn't fit in a single line and will wrap around instead. In fact, it's so long that it should take up at least three lines on its own."),
-		postMessage("..."),
-		postMessage("So hey, how's your day going?")
-	);
-
-
-
-
-
 	// SCENE HIERARCHY SETUP
 
 	game.addChild(game.galacticSystem);
 	
-	game.addChild(game.messages.messageBox);
-
-	game.addChild(btnExplore);
-	game.addChild(btnExpand);
-	game.addChild(btnExploit);
-	game.addChild(btnExterminate);
 	game.addChild(btnOptions);
 
 
@@ -423,8 +306,8 @@ function main(){
 
 			offset[0]=lerp(offset[0],(0.5-mouse.pos[0]/size[0])*32 + Math.sin(curTime/2222)*16,0.05);
 			offset[1]=lerp(offset[1],(0.5-mouse.pos[1]/size[1])*32 + Math.sin(curTime/3333)*16,0.05);
-			v.position.x=size[0]*2/3 + v.viewEased*size[0] + offset[0];
-			v.position.y=(size[1]-(vars.misc.ui_scale*vars.misc.message_displaySize+2))/2 + offset[1];
+			v.position.x=size[0]*1/2 + v.viewEased*size[0] + offset[0];
+			v.position.y=size[1]*1/2 + offset[1];
 		}
 	}
 
@@ -514,92 +397,6 @@ function layoutUI(_idx){
 }
 
 
-
-
-
-
-function postMessage(_str){
-
-	var res=[];
-	var lines=_str.split("\n");
-	
-	// multiple lines
-	if(lines.length > 1){
-		while(lines.length > 0){
-			res=res.concat(postMessage(lines[0]));
-			lines=lines.slice(1);
-		}
-		return res;
-	}
-
-
-	// individual line
-
-	// split the input string into words
-	// add words to lines until an added word would overflow
-	// when this happens, save the current line and go to the next
-	var words=_str.split(" ");
-	var lines=[];
-	_str="";
-	while(words.length > 0){
-		if((_str.length + words[0].length+5)*0.4 > 27){
-			lines.unshift(_str);
-			_str="";
-		}else{
-			_str+=" "+words[0];
-			words=words.slice(1);
-		}
-	}
-	// if there's any _str left-over in the last line add it here
-	// (unless the _str is a perfect fit, we'll have missed the last bit in the loop)
-	if(_str.length>0){
-		lines.unshift(_str);
-	}
-
-	// add lines to screen
-	var l=lines.length;
-	while(lines.length > 0){
-		_str=lines[0];
-		if(l>1){
-			// multiline message
-			while((_str.length+5)*0.4 <= 27){
-				_str+=" ";
-			}
-			if(lines.length==1){
-				_str="/*"+_str+" *";
-			}else{
-				_str=" *"+_str;
-				if(lines.length==l){
-					_str=_str+" */";
-				}else{
-					_str+=" *";
-				}
-			}
-		}else{
-			_str="//"+_str;
-		}
-		var t = new PIXI.Text(_str, textStyle);
-		t.position.y=vars.misc.ui_scale*(4+lines.length);
-		t.position.x=vars.misc.ui_scale;
-		t.anchor.y=1;
-
-		lines=lines.slice(1);
-		res.push(t);
-		game.messages.messageBox.addChild(t);
-	}
-
-	game.messages.messages=res.concat(game.messages.messages);
-
-	while(game.messages.messages.length > vars.misc.message_bufferSize){
-		game.messages.messageBox.removeChild(game.messages.messages.pop());
-	}
-
-	return res;
-}
-
-
-
-
 // hover stuff
 
 function btn_onMouseOver(){
@@ -634,102 +431,7 @@ function star_onMouseOut(){
 };
 
 
-
 // click stuff
-
-function explore_onClick(){
-	postMessage("executing 'cmd.explore()'...");
-	switch(game.views.current){
-		case game.views.PLANET:
-		console.log(descriptions.planet);
-
-		if(descriptions.planet.tagsToConsume.length > 0){
-
-			var rng=new MersenneTwister(game.planetarySystem.seed);
-			var tagIdx=Math.round(rng.real()*(descriptions.planet.tagsToConsume.length-1));
-			var tag=descriptions.planet.tagsToConsume[tagIdx];
-
-			var phrases=planet_descriptions[tag];
-
-			descriptions.planet.tagsToConsume.splice(tagIdx,1);
-			descriptions.planet.tagsConsumed.push(tag);
-
-
-			if(phrases && phrases.length > 0){
-				var phrase=phrases[Math.round(rng.real()*(phrases.length-1))];
-
-				postMessage(replaceWords(phrase,rng));
-			}else{
-				postMessage("Scanner error: indecipherable data discovered.");
-			}
-
-		}else{
-			postMessage("Nothing of interest left to report.");
-		}
-
-		break;
-		case game.views.SOLAR:
-		console.log(descriptions.solarSystem);
-		break;
-		case game.views.GALAXY:
-		console.log(descriptions.galaxy);
-		break;
-	}
-}
-function expand_onClick(){
-	postMessage("executing 'cmd.expand()'...");
-	switch(game.views.current){
-		case game.views.PLANET:
-		
-		break;
-		case game.views.SOLAR:
-		
-		break;
-		case game.views.GALAXY:
-		
-		break;
-	}
-}
-function exploit_onClick(){
-	postMessage("executing 'cmd.exploit()'...");
-	switch(game.views.current){
-		case game.views.PLANET:
-		
-		break;
-		case game.views.SOLAR:
-		
-		break;
-		case game.views.GALAXY:
-		
-		break;
-	}
-}
-function exterminate_onClick(){
-	postMessage("executing 'cmd.exterminate()'...\nSearching for targets...");
-	switch(game.views.current){
-		case game.views.PLANET:
-		postMessage("Targeting "+descriptions.planet.name+"...");
-		if(true){ // planet has life
-			// remove life
-			postMessage("Life on "+descriptions.planet.name+" exterminated.");
-		}else{
-			postMessage("No living targets found.");
-			postMessage("Command aborted.");
-		}
-		break;
-		case game.views.SOLAR:
-		postMessage("View resolution incompatible with 'cmd.exterminate()'.");
-		postMessage("Command aborted.");
-		break;
-		case game.views.GALAXY:
-		postMessage("View resolution incompatible with 'cmd.exterminate()'.");
-		postMessage("Command aborted.");
-		break;
-	}
-}
-
-
-
 function planetIn_onClick(){
 	if(game.planetarySystem!==null){
 		game.views[game.views.PLANET]=null;
@@ -745,9 +447,6 @@ function planetIn_onClick(){
 	game.views.push(game.planetarySystem);
 
 	planetarySystem_initInteraction();
-
-	postMessage("executing 'cmd.increaseResolution()'...");
-	postMessage("Viewing "+descriptions.planet.name+".");
 }
 
 function planetOut_onClick(){
@@ -755,9 +454,6 @@ function planetOut_onClick(){
 	game.solarSystem.viewTarget=0;
 
 	solarSystem_initInteraction();
-
-	postMessage("executing 'cmd.decreaseResolution()'...");
-	postMessage("Viewing "+descriptions.solarSystem.name+".");
 }
 
 function starIn_onClick(){
@@ -776,9 +472,6 @@ function starIn_onClick(){
 	game.views.push(game.solarSystem);
 
 	solarSystem_initInteraction();
-
-	postMessage("executing 'cmd.increaseResolution()'...");
-	postMessage("Viewing "+descriptions.solarSystem.name+".");
 }
 
 function starOut_onClick(){
@@ -786,14 +479,12 @@ function starOut_onClick(){
 	game.galacticSystem.viewTarget=0;
 
 	galacticSystem_initInteraction();
-
-	postMessage("executing 'cmd.decreaseResolution()'...");
-	postMessage("Viewing "+descriptions.galaxy.name+".");
 }
 
 
 
 
+// hitcircle stuff
 
 function planetarySystem_initInteraction(){
 	ui.hitcircles=[];
@@ -807,7 +498,6 @@ function planetarySystem_initInteraction(){
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 
 	game.views.current = game.views.PLANET;
-	descriptions.planet = descriptions.getPlanetDescription(game.planetarySystem);
 }
 function solarSystem_initInteraction(){
 	ui.hitcircles=[];
@@ -834,7 +524,6 @@ function solarSystem_initInteraction(){
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 
 	game.views.current = game.views.SOLAR;
-	descriptions.solarSystem = descriptions.getSolarSystemDescription(game.solarSystem);
 }
 function galacticSystem_initInteraction(){
 	ui.hitcircles=[];
@@ -850,7 +539,5 @@ function galacticSystem_initInteraction(){
 		});
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
-// hitcircle stuff
 	game.views.current = game.views.GALAXY;
-	descriptions.galaxy = descriptions.getGalaxyDescription(game.galacticSystem);
 }

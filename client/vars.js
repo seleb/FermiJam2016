@@ -42,8 +42,6 @@ var vars={
 		ui_scale:12,
 
 		transition_speed:1/60,
-		message_bufferSize:32,
-		message_displaySize:8,
 
 		min_interaction_radius:25,
 		dash:[3,5], // dash, dash+gap
