@@ -313,6 +313,7 @@ function setup(){
 	game.views.GALAXY=0;
 	game.views.SOLAR=1;
 	game.views.PLANET=2;
+	game.views.current = game.views.GALAXY;
 
 
 	galacticSystem_initInteraction();
@@ -718,6 +719,9 @@ function planetarySystem_initInteraction(){
 		onClick:planetOut_onClick
 	});
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
+
+	game.views.current = game.views.PLANET;
+	descriptions.planet = descriptions.getPlanetDescription(game.planetarySystem);
 }
 function solarSystem_initInteraction(){
 	console.log('switching to solar system view');
@@ -734,7 +738,7 @@ function solarSystem_initInteraction(){
 		});
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
-
+// hitcircle stuff
 	ui.hitcircles.push({
 		e:game.solarSystem.star,
 		r:Math.max(game.solarSystem.star.r2,25),
@@ -743,13 +747,16 @@ function solarSystem_initInteraction(){
 		onClick:starOut_onClick
 	});
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
+
+	game.views.current = game.views.SOLAR;
+	descriptions.solarSystem = descriptions.getSolarSystemDescription(game.solarSystem);
 }
 function galacticSystem_initInteraction(){
 	console.log('switching to galactic system view');
 	ui.hitcircles=[];
 	for(var i=0;i < game.galacticSystem.stars.length;++i){
 		var star=game.galacticSystem.stars[i];
-// hitcircle stuff
+
 		ui.hitcircles.push({
 			e:star,
 			r:Math.max(star.r2,25),
@@ -759,4 +766,7 @@ function galacticSystem_initInteraction(){
 		});
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
+
+	game.views.current = game.views.GALAXY;
+	descriptions.galaxy = descriptions.getGalaxyDescription(game.galacticSystem);
 }
