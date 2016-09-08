@@ -653,7 +653,7 @@ function planetIn_onClick(){
 	postMessage("hey it's a planet");
 
 	if(game.planetarySystem!==null){
-		game.views[game.views.PLANETARY]=null;
+		game.views[game.views.PLANET]=null;
 		game.removeChild(game.planetarySystem);
 	}
 	game.planetarySystem=getPlanetarySystem(this.e);
