@@ -43,3 +43,7 @@ function ease(t) {
 	}
 	return 0.5*((t-=2)*t*t + 2);
 };
+
+function range(rng,range){
+	return rng.real()*(range[1]-range[0])+range[0];
+}

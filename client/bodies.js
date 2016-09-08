@@ -12,7 +12,7 @@ function renderGalaxy(_galaxy){
 	}
 }
 
-function renderStar(_graphics,_points,_radiusInner,_radiusOuter,_filled){
+function renderStar(_graphics,_points,_pointType,_radiusInner,_radiusOuter,_filled){
 	_graphics.clear();
 	_graphics.beginFill(_filled ? palette.color2 : palette.color1);
 	if(!_filled){
@@ -21,7 +21,7 @@ function renderStar(_graphics,_points,_radiusInner,_radiusOuter,_filled){
 	_graphics.moveTo(_radiusInner,0);
 	for(var i=1; i<=_points;++i){
 		var a=i/_points*Math.PI*2;
-		var r = i%2==0 ? _radiusInner : _radiusOuter;
+		var r = i%_pointType==0 ? _radiusInner : _radiusOuter;
 		_graphics.lineTo(r*Math.cos(a),r*Math.sin(a));
 	}
 	_graphics.endFill();
@@ -64,16 +64,17 @@ function getGalacticSystem(_seed){
 	var rng = new MersenneTwister(_seed);
 
 	var galacticSystem=new PIXI.Container();
+	galacticSystem.seed=rng.int();
 	galacticSystem.orbitDir=rng.real() > 0.5 ? -1 : 1;
 	galacticSystem.center=new PIXI.Graphics();
 	galacticSystem.center.rotationSpeed=(rng.real()*3000+5000)*galacticSystem.orbitDir;
-	galacticSystem.center.r=200;
-	galacticSystem.center.curve=rng.real()*5+1;
+	galacticSystem.center.r=range(rng, vars.range.galaxy_radius);
+	galacticSystem.center.curve=range(rng, vars.range.galaxy_curve);
 
 
 	// setup arms + possible star positions
 	
-	galacticSystem.center.arms=new Array(Math.round(rng.real()*6+2));
+	galacticSystem.center.arms=new Array(Math.round(range(rng, vars.range.galaxy_arms)));
 	galacticSystem.center.starPoints=[];
 	var segments=galacticSystem.center.r*galacticSystem.center.curve/10;
 	for(var a=0; a<galacticSystem.center.arms.length; ++a){
@@ -99,19 +100,25 @@ function getGalacticSystem(_seed){
 	for(var i=0; i < numStars; ++i){
 		var star = new PIXI.Graphics();
 
-		star.points=Math.round(rng.real()*16+2)*2;
-		star.r1=rng.real()*3+1;
-		star.r2=star.r1+rng.real()*3+2;
+		star.pointType=2;
+		if(rng.real() < vars.chance.star_round){
+			star.pointType=1;
+		}if(rng.real() < vars.chance.star_gear){
+			star.pointType=4;
+		}
+
+		star.points=Math.round(range(rng,vars.range.star_points))*star.pointType;
+		star.r1=range(rng,vars.range.star_radius_inner);
+		star.r2=star.r1+range(rng,vars.range.star_radius_outer);
 		star.rotationSpeed=(rng.real()*5000+1000)*galacticSystem.orbitDir;
-		if(rng.real() < 0.25){
+		if(rng.real() < vars.chance.star_reverse_orbit){
 			star.rotationSpeed*=-1;
 		}
 
 		star.seed=rng.int();
-		star.or=rng.real()*200;
 		star.a=rng.real()*Math.PI*2;
 
-		var p=rng.int()%galacticSystem.center.starPoints.length;
+		var p=rng.int()%(galacticSystem.center.starPoints.length-2)+2;
 
 		star.position.x=galacticSystem.center.starPoints[p][0];
 		star.position.y=galacticSystem.center.starPoints[p][1];
@@ -120,11 +127,6 @@ function getGalacticSystem(_seed){
 
 		galacticSystem.stars.push(star);
 	}
-
-	// sort orbits by radius for (more) consistent layering of planets
-	// order: inner planets on top of outer planets
-	galacticSystem.stars.sort(function(a,b){return b.or - a.or;});
-
 
 	// add to scene
 	for(var i=0; i < galacticSystem.stars.length; ++i){
@@ -140,6 +142,7 @@ function getSolarSystem(_star){
 	var rng = new MersenneTwister(_star.seed);
 
 	var solarSystem=new PIXI.Container();
+	solarSystem.seed=_star.seed;
 	solarSystem.orbitDir=_star.rotationSpeed < 0 ? -1 : 1;
 	solarSystem.center=new PIXI.Container();
 	solarSystem.planets=new PIXI.Container();
@@ -149,33 +152,33 @@ function getSolarSystem(_star){
 	solarSystem.star.rotationSpeed=_star.rotationSpeed;
 	solarSystem.center.addChild(solarSystem.star);
 
-
+	solarSystem.star.pointType=_star.pointType;
 	solarSystem.star.points=_star.points;
-	solarSystem.star.r1=_star.r1*5;
-	solarSystem.star.r2=_star.r2*5;
+	solarSystem.star.r1=_star.r1*vars.misc.star_zoom;
+	solarSystem.star.r2=_star.r2*vars.misc.star_zoom;
 
 	// setup orbits
 	solarSystem.orbits=[];
-	for(var i=0; i < rng.real()*20; ++i){
+	for(var i=0; i < range(rng, vars.range.star_num_planets); ++i){
 		var container=new PIXI.Container();
 		var orbit = new PIXI.Graphics();
 
 		// planet
 		orbit.planet=new PIXI.Graphics();
-		orbit.planet.r=Math.round(rng.real()*15+2)+0.5;
+		orbit.planet.r=Math.round(range(rng,vars.range.planet_radius))+0.5;
 
 		// big planet
-		if(orbit.planet.r > 15 && rng.real() < 0.05){
-			orbit.planet.r*=2;
+		if(orbit.planet.r > vars.range.planet_radius[1]*vars.misc.planet_big_thresh && rng.real() < vars.chance.planet_big){
+			orbit.planet.r*=vars.misc.planet_big_mult;
 		}
 
 		orbit.planet.seed=rng.int();
 
-		orbit.r=rng.real()*150+solarSystem.star.r2+orbit.planet.r;
+		orbit.r=range(rng, vars.range.orbit_radius)+solarSystem.star.r2+orbit.planet.r;
 		orbit.rotationSpeed=(rng.real()*5000+1000)*solarSystem.orbitDir;
 
 		// reverse orbit
-		if(rng.real() < 0.01){
+		if(rng.real() < vars.chance.planet_reverse_orbit){
 			orbit.rotationSpeed*=-1;
 		}
 
@@ -213,9 +216,9 @@ function getPlanetarySystem(_planet){
 	var rng = new MersenneTwister(_planet.seed);
 
 	var planetarySystem=new PIXI.Container();
-
+	planetarySystem.seed=_planet.seed;
 	planetarySystem.planet=new PIXI.Graphics();
-	planetarySystem.planet.r=_planet.r*5;
+	planetarySystem.planet.r=_planet.r*vars.misc.planet_zoom;
 
 	planetarySystem.addChild(planetarySystem.planet);
 

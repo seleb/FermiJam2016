@@ -629,10 +629,10 @@ function planet_onMouseOut(){
 };
 
 function star_onMouseOver(){
-	renderStar(this.e,this.e.points,this.e.r1,this.e.r2,true);
+	renderStar(this.e,this.e.points,this.e.pointType,this.e.r1,this.e.r2,true);
 };
 function star_onMouseOut(){
-	renderStar(this.e,this.e.points,this.e.r1,this.e.r2,false);
+	renderStar(this.e,this.e.points,this.e.pointType,this.e.r1,this.e.r2,false);
 };
 
 
@@ -738,7 +738,7 @@ function solarSystem_initInteraction(){
 		});
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
-// hitcircle stuff
+
 	ui.hitcircles.push({
 		e:game.solarSystem.star,
 		r:Math.max(game.solarSystem.star.r2,25),
@@ -766,7 +766,7 @@ function galacticSystem_initInteraction(){
 		});
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
-
+// hitcircle stuff
 	game.views.current = game.views.GALAXY;
 	descriptions.galaxy = descriptions.getGalaxyDescription(game.galacticSystem);
 }
