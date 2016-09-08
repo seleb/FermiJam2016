@@ -640,18 +640,76 @@ function star_onMouseOut(){
 // click stuff
 
 function explore_onClick(){
+	postMessage("executing 'cmd.explore()'...");
+	switch(game.views.current){
+		case game.views.PLANET:
+		console.log(descriptions.planet);
+		break;
+		case game.views.SOLAR:
+		console.log(descriptions.solarSystem);
+		break;
+		case game.views.GALAXY:
+		console.log(descriptions.galaxy);
+		break;
+	}
 }
 function expand_onClick(){
+	postMessage("executing 'cmd.expand()'...");
+	switch(game.views.current){
+		case game.views.PLANET:
+		
+		break;
+		case game.views.SOLAR:
+		
+		break;
+		case game.views.GALAXY:
+		
+		break;
+	}
 }
 function exploit_onClick(){
+	postMessage("executing 'cmd.exploit()'...");
+	switch(game.views.current){
+		case game.views.PLANET:
+		
+		break;
+		case game.views.SOLAR:
+		
+		break;
+		case game.views.GALAXY:
+		
+		break;
+	}
 }
 function exterminate_onClick(){
+	postMessage("executing 'cmd.exterminate()'...\nSearching for targets...");
+	switch(game.views.current){
+		case game.views.PLANET:
+		postMessage("Targeting [PLANET]...");
+		if(true){ // planet has life
+			// remove life
+			postMessage("Life on [PLANET] exterminated.");
+		}else{
+			postMessage("No living targets found.");
+			postMessage("Command aborted.");
+		}
+		break;
+		case game.views.SOLAR:
+		postMessage("View resolution incompatible with 'cmd.exterminate()'.");
+		postMessage("Command aborted.");
+		break;
+		case game.views.GALAXY:
+		postMessage("View resolution incompatible with 'cmd.exterminate()'.");
+		postMessage("Command aborted.");
+		break;
+	}
 }
 
 
 
 function planetIn_onClick(){
-	postMessage("hey it's a planet");
+	postMessage("executing 'cmd.increaseResolution()'...");
+	postMessage("Viewing [PLANET].");
 
 	if(game.planetarySystem!==null){
 		game.views[game.views.PLANET]=null;
@@ -670,7 +728,8 @@ function planetIn_onClick(){
 }
 
 function planetOut_onClick(){
-	postMessage("hey it's a planet");
+	postMessage("executing 'cmd.decreaseResolution()'...");
+	postMessage("Viewing [SOLARSYSTEM].");
 	game.planetarySystem.viewTarget=1;
 	game.solarSystem.viewTarget=0;
 
@@ -678,7 +737,8 @@ function planetOut_onClick(){
 }
 
 function starIn_onClick(){
-	postMessage("hey it's a star");
+	postMessage("executing 'cmd.increaseResolution()'...");
+	postMessage("Viewing [SOLARSYSTEM].");
 
 	if(game.solarSystem!==null){
 		game.views[game.views.SOLAR]=null;
@@ -697,7 +757,8 @@ function starIn_onClick(){
 }
 
 function starOut_onClick(){
-	postMessage("hey it's a star");
+	postMessage("executing 'cmd.decreaseResolution()'...");
+	postMessage("Viewing [GALAXY].");
 	game.solarSystem.viewTarget=1;
 	game.galacticSystem.viewTarget=0;
 
