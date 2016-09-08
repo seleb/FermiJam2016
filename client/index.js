@@ -208,8 +208,10 @@ function setup(){
 
 		var t = new PIXI.Text(_text, textStyle);
 		g.addChild(t);
-		t.position.y=vars.misc.ui_scale/2;
-		t.position.x=vars.misc.ui_scale*5-_text.length*vars.misc.ui_scale/3.4;
+		t.position.y=vars.misc.ui_scale;
+		t.position.x=vars.misc.ui_scale*5;
+		t.anchor.x=0.5;
+		t.anchor.y=0.5;
 
 		g.text=t;
 		g.update=function(){
