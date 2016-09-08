@@ -1,10 +1,5 @@
-@font-face{
-	font-family: 'gamefont';
-	src:url("Courier Prime Sans.ttf");
-}
-
 *{
-	font-family: 'gamefont';
+	font-family: Courier New, monospace;
 }
 
 html,body,#display,canvas{

@@ -198,7 +198,7 @@ function loadProgressHandler(loader, resource){
 function setup(){
 	
 	textStyle = {
-		fontFamily: 'gamefont',
+		fontFamily: 'Courier New, monospace',
 		fontSize:scale,
 		fill : palette.color2,
 		dropShadow : false,
