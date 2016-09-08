@@ -642,6 +642,29 @@ function explore_onClick(){
 	switch(game.views.current){
 		case game.views.PLANET:
 		console.log(descriptions.planet);
+
+		if(descriptions.planet.tagsToConsume.length > 0){
+
+			var rng=new MersenneTwister(game.planetarySystem.seed);
+			var tagIdx=Math.round(rng.real()*(descriptions.planet.tagsToConsume.length-1));
+			var tag=descriptions.planet.tagsToConsume[tagIdx];
+
+			var phrases=planet_descriptions[tag];
+
+			descriptions.planet.tagsToConsume.splice(tagIdx,1);
+			descriptions.planet.tagsConsumed.push(tag);
+
+
+			if(phrases && phrases.length > 0){
+				var phrase=phrases[Math.round(rng.real()*(phrases.length-1))];
+
+				postMessage(replaceWords(phrase,rng));
+			}
+
+		}else{
+			postMessage("Nothing of interest left to report.");
+		}
+
 		break;
 		case game.views.SOLAR:
 		console.log(descriptions.solarSystem);
