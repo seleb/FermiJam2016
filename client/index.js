@@ -553,11 +553,11 @@ function postMessage(_str){
 	// when this happens, save the current line and go to the next
 	var words=_str.split(" ");
 	var lines=[];
-	_str="//";
+	_str="";
 	while(words.length > 0){
-		if(_str.length + words[0].length+1 > scale*5.5){
+		if(_str.length + words[0].length+5> scale*5.6){
 			lines.unshift(_str);
-			_str="//";
+			_str="";
 		}else{
 			_str+=" "+words[0];
 			words=words.slice(1);
@@ -570,8 +570,27 @@ function postMessage(_str){
 	}
 
 	// add lines to screen
+	var l=lines.length;
 	while(lines.length > 0){
 		_str=lines[0];
+		if(l>1){
+			// multiline message
+			while(_str.length+5 <= scale*5.6){
+				_str+=" ";
+			}
+			if(lines.length==1){
+				_str="/*"+_str+" *";
+			}else{
+				_str=" *"+_str;
+				if(lines.length==l){
+					_str=_str+" */";
+				}else{
+					_str+=" *";
+				}
+			}
+		}else{
+			_str="//"+_str;
+		}
 		var t = new PIXI.Text(_str, textStyle);
 		t.position.y=scale*(4+lines.length);
 		t.position.x=scale;
