@@ -659,6 +659,8 @@ function explore_onClick(){
 				var phrase=phrases[Math.round(rng.real()*(phrases.length-1))];
 
 				postMessage(replaceWords(phrase,rng));
+			}else{
+				postMessage("Scanner error: indecipherable data discovered.");
 			}
 
 		}else{
@@ -706,10 +708,10 @@ function exterminate_onClick(){
 	postMessage("executing 'cmd.exterminate()'...\nSearching for targets...");
 	switch(game.views.current){
 		case game.views.PLANET:
-		postMessage("Targeting [PLANET]...");
+		postMessage("Targeting "+descriptions.planet.name+"...");
 		if(true){ // planet has life
 			// remove life
-			postMessage("Life on [PLANET] exterminated.");
+			postMessage("Life on "+descriptions.planet.name+" exterminated.");
 		}else{
 			postMessage("No living targets found.");
 			postMessage("Command aborted.");
@@ -729,9 +731,6 @@ function exterminate_onClick(){
 
 
 function planetIn_onClick(){
-	postMessage("executing 'cmd.increaseResolution()'...");
-	postMessage("Viewing [PLANET].");
-
 	if(game.planetarySystem!==null){
 		game.views[game.views.PLANET]=null;
 		game.removeChild(game.planetarySystem);
@@ -746,20 +745,22 @@ function planetIn_onClick(){
 	game.views.push(game.planetarySystem);
 
 	planetarySystem_initInteraction();
+
+	postMessage("executing 'cmd.increaseResolution()'...");
+	postMessage("Viewing "+descriptions.planet.name+".");
 }
 
 function planetOut_onClick(){
-	postMessage("executing 'cmd.decreaseResolution()'...");
-	postMessage("Viewing [SOLARSYSTEM].");
 	game.planetarySystem.viewTarget=1;
 	game.solarSystem.viewTarget=0;
 
 	solarSystem_initInteraction();
+
+	postMessage("executing 'cmd.decreaseResolution()'...");
+	postMessage("Viewing "+descriptions.solarSystem.name+".");
 }
 
 function starIn_onClick(){
-	postMessage("executing 'cmd.increaseResolution()'...");
-	postMessage("Viewing [SOLARSYSTEM].");
 
 	if(game.solarSystem!==null){
 		game.views[game.views.SOLAR]=null;
@@ -775,15 +776,19 @@ function starIn_onClick(){
 	game.views.push(game.solarSystem);
 
 	solarSystem_initInteraction();
+
+	postMessage("executing 'cmd.increaseResolution()'...");
+	postMessage("Viewing "+descriptions.solarSystem.name+".");
 }
 
 function starOut_onClick(){
-	postMessage("executing 'cmd.decreaseResolution()'...");
-	postMessage("Viewing [GALAXY].");
 	game.solarSystem.viewTarget=1;
 	game.galacticSystem.viewTarget=0;
 
 	galacticSystem_initInteraction();
+
+	postMessage("executing 'cmd.decreaseResolution()'...");
+	postMessage("Viewing "+descriptions.galaxy.name+".");
 }
 
 
@@ -791,7 +796,6 @@ function starOut_onClick(){
 
 
 function planetarySystem_initInteraction(){
-	console.log('switching to planetary system view');
 	ui.hitcircles=[];
 	ui.hitcircles.push({
 		e:game.planetarySystem.planet,
@@ -806,7 +810,6 @@ function planetarySystem_initInteraction(){
 	descriptions.planet = descriptions.getPlanetDescription(game.planetarySystem);
 }
 function solarSystem_initInteraction(){
-	console.log('switching to solar system view');
 	ui.hitcircles=[];
 	for(var i=0;i < game.solarSystem.orbits.length;++i){
 		var orbit=game.solarSystem.orbits[i];
@@ -834,7 +837,6 @@ function solarSystem_initInteraction(){
 	descriptions.solarSystem = descriptions.getSolarSystemDescription(game.solarSystem);
 }
 function galacticSystem_initInteraction(){
-	console.log('switching to galactic system view');
 	ui.hitcircles=[];
 	for(var i=0;i < game.galacticSystem.stars.length;++i){
 		var star=game.galacticSystem.stars[i];

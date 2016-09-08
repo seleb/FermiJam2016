@@ -288,28 +288,28 @@ var descriptions={
 
 		// size
 		if(_planet.originalPlanet.r < lerp(vars.range.planet_radius[0],vars.range.planet_radius[1],0.33)){
-			d.tags.push("size_small");
+			d.tags.push("planet_size_small");
 		}else if(_planet.originalPlanet.r > lerp(vars.range.planet_radius[0],vars.range.planet_radius[1],0.66)){
 			if(_planet.originalPlanet.r > vars.range.planet_radius[1]){
-				d.tags.push("size_extralarge");
+				d.tags.push("planet_size_extralarge");
 			}else{
-				d.tags.push("size_large");
+				d.tags.push("planet_size_large");
 			}
 		}else{
-			d.tags.push("size_medium");
+			d.tags.push("planet_size_medium");
 		}
 
 		// distance
 		if(_planet.originalPlanet.orbit_radius < lerp(vars.range.orbit_radius[0],vars.range.orbit_radius[1],0.33)){
-			d.tags.push("distance_close");
+			d.tags.push("planet_distance_near");
 		}else if(_planet.originalPlanet.orbit_radius > lerp(vars.range.orbit_radius[0],vars.range.orbit_radius[1],0.66)){
 			if(_planet.originalPlanet.orbit_radius > vars.range.planet_radius[1]){
-				d.tags.push("distance_extrafar");
+				d.tags.push("planet_distance_extrafar");
 			}else{
-				d.tags.push("distance_far");
+				d.tags.push("planet_distance_far");
 			}
 		}else{
-			d.tags.push("distance_medium");
+			d.tags.push("planet_distance_medium");
 		}
 
 		// name

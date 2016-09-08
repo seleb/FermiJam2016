@@ -1,17 +1,36 @@
 var planet_descriptions={
-	"size_small":[
+	// planet sizes
+	"planet_size_small":[
 		"This is a [emphasis||de-emphasis||null] [small] [planet].",
 		"This [planet] is [emphasis||de-emphasis||null] [small].",
 		"In comparison to others, this [planet] is a [small] pebble [orbiting] around a [star]."
 	],
-	"size_medium":[
-		"This is a [emphasis||de-emphasis||null] [normal]-sized [planet].",
+	"planet_size_medium":[
+		"This is a [de-emphasis||null] [normal]-sized [planet].",
 		"This [planet] is [emphasis||de-emphasis||null] [normal]-sized."
 	],
-	"size_large":[
+	"planet_size_large":[
+		"This is a [large] [planet].",
+		"This [planet] is [emphasis||de-emphasis||null] [large]."
+	],
+	"planet_size_extralarge":[
 		"This is a [emphasis||de-emphasis||null] [large] [planet].",
 		"This [planet] is [emphasis||de-emphasis||null] [large]."
-	]
+	],
+
+	// planet distances
+	"planet_distance_near":[
+		"This is [planet] is [emphasis||null] close to the [star] it orbits."
+	],
+	"planet_distance_medium":[
+		"This is [planet] is at a reasonable distance from the [star] it orbits."
+	],
+	"planet_distance_far":[
+		"This is [planet] is far from the [star] it orbits."
+	],
+	"planet_distance_extrafar":[
+		"This is [planet] is [emphasis] far from the [star] it orbits."
+	],
 };
 
 var words={
@@ -47,7 +66,9 @@ var words={
 		"kind of",
 		"sort of",
 		"regrettably",
-		"underwhelmingly"
+		"underwhelmingly",
+		"forgettably",
+		"unimpressively"
 	],
 
 	"small":[
