@@ -285,6 +285,11 @@ function setup(){
 
 			filter.uniforms.color1 = palette.color1;
 			filter.uniforms.color2 = palette.color2;
+
+			document.body.style.backgroundColor="rgb("+palette.color1[0]+","+palette.color1[1]+","+palette.color1[2]+")";
+
+			console.log(document.body.style);
+			this.onMouseOver();
 		}
 	});
 	ui.hitboxes[ui.hitboxes.length-1].onClick();
@@ -484,17 +489,17 @@ function drawFullscreen(_graphics,_fullscreen,_filled){
 	_graphics.endFill();
 }
 function drawPalette(_graphics,_current,_filled){
-	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
-	if(_current){
-		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
-		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*2-vars.misc.ui_scale*1/2);
-		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
-	}else{
-		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*3/2);
-		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*1/2);
-		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*3/2);
+
+	for(var i=0; i < palette.a.length;++i){
+		_graphics.beginFill((_filled^i==palette.current) ? 0xFFFFFF : 0x000000);
+		_graphics.lineStyle(vars.misc.stroke_width, (_filled^i==palette.current) ? 0x000000 : 0xFFFFFF, 1);
+		var a=i/palette.a.length*Math.PI*2;
+		_graphics.drawCircle(
+			vars.misc.ui_scale+Math.cos(a)*vars.misc.ui_scale/2,
+			vars.misc.ui_scale+Math.sin(a)*vars.misc.ui_scale/2,
+			vars.misc.ui_scale/3);
+		_graphics.endFill();
 	}
-	_graphics.endFill();
 }
 
 function btn_onMouseOver(){
