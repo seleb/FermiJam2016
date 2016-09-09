@@ -318,7 +318,6 @@ function setup(){
 	game.views.current = game.views.GALAXY;
 
 
-	galacticSystem_initInteraction();
 
 	// SCENE HIERARCHY SETUP
 
@@ -367,6 +366,9 @@ function setup(){
 
 	game.ship=galaxy_ship;
 
+	game.autoPilot=true;
+	game.targetTimer=0;
+
 
 	path={
 		galaxy:new PIXI.Graphics(),
@@ -386,6 +388,7 @@ function setup(){
 
 
 	// start the main loop
+	galacticSystem_initInteraction();
 	window.onresize = onResize;
 	onResize();
 	main();
@@ -397,6 +400,7 @@ function setup(){
 
 function main(){
 	curTime=Date.now()-startTime;
+	deltaTime=curTime-lastTime;
 
 	ui.update();
 
@@ -406,33 +410,51 @@ function main(){
 
 	// update ship
 	
+	// get new target
+	if(game.autoPilot){
+		game.targetTimer-=deltaTime;
+		if(game.targetTimer <= 0){
+			game.targetTimer=vars.misc.target_timer;
+			var rng=new MersenneTwister(curTime);
+			var t =ui.hitcircles[rng.int()%ui.hitcircles.length];
+			if(game.ship==solar_ship && rng.real() > vars.chance.target_star){
+				t=ui.hitcircles[ui.hitcircles.length-1];
+			}
+			t.onClick();
+		}
+	}
+
 	var p1=game.ship.toGlobal(new PIXI.Point(0,0));
 	var p5=[p1.x-size[0]*(game.views[game.views.current].viewEased+0.5)-offset[0], p1.y-size[1]/2-offset[1]];
 	while(path.points.length < 1024 && Math.abs(game.views[game.views.current].view) < 0.5){
 		path.points.push([p5,game.ship.v.slice()]);
 	}
+	var a=[Math.sin(curTime/3000)*Math.cos(curTime/4000)/3,Math.cos(curTime/2000)*Math.sin(curTime/5000)/3];
 	if(game.ship.target!=null){
 		var p2=game.ship.target.toGlobal(new PIXI.Point(0,0));
-		var a=[p2.x-p1.x,p2.y-p1.y];
+		var a2=[p2.x-p1.x,p2.y-p1.y];
 
 
-		var l=Math.sqrt(a[0]*a[0]+a[1]*a[1]);
+		var l=Math.sqrt(a2[0]*a2[0]+a2[1]*a2[1]);
 		if(l > 1){
-			a[0]/=l;
-			a[1]/=l;
+			a2[0]/=l;
+			a2[1]/=l;
 		}
+		a[0]=lerp(a2[0],a[0],game.targetTimer/vars.misc.target_timer);
+		a[1]=lerp(a2[1],a[1],game.targetTimer/vars.misc.target_timer);
 
-		if(l < game.ship.target.r+game.ship.r){
+		if(game.ship.onTarget!=null && l < game.ship.target.r+game.ship.r){
 			game.ship.target=null;
 			game.ship.onTarget();
+			game.ship.onTarget=null;
 		}
-		game.ship.v[0]+=a[0]/2;
-		game.ship.v[1]+=a[1]/2;
-		game.ship.v[0]*=0.9;
-		game.ship.v[1]*=0.9;
-		game.ship.position.x+=game.ship.v[0];
-		game.ship.position.y+=game.ship.v[1];
 	}
+	game.ship.v[0]+=a[0]/5;
+	game.ship.v[1]+=a[1]/5;
+	game.ship.v[0]*=0.95;
+	game.ship.v[1]*=0.95;
+	game.ship.position.x+=game.ship.v[0];
+	game.ship.position.y+=game.ship.v[1];
 
 
 	path.galaxy.clear();
@@ -706,7 +728,7 @@ function planetIn_onClick(){
 		if(game.planetarySystem!==null){
 			game.views[game.views.PLANET]=null;
 			game.removeChild(game.planetarySystem);
-			game.planetarySystem.planet.removeChild(planet_ship);
+			game.planetarySystem.removeChild(planet_ship);
 			game.planetarySystem.removeChild(path.planet);
 			game.planetarySystem.destroy();
 		}
@@ -724,10 +746,13 @@ function planetIn_onClick(){
 }
 
 function planetOut_onClick(){
-	game.planetarySystem.viewTarget=1;
-	game.solarSystem.viewTarget=0;
+	planet_ship.target=this.e;
+	planet_ship.onTarget=function(){
+		game.planetarySystem.viewTarget=1;
+		game.solarSystem.viewTarget=0;
 
-	solarSystem_initInteraction();
+		solarSystem_initInteraction();
+	}
 }
 
 function starIn_onClick(){
@@ -772,8 +797,11 @@ function starOut_onClick(){
 // hitcircle stuff
 
 function planetarySystem_initInteraction(){
+	planet_ship.v[0]=game.ship.v[0];
+	planet_ship.v[1]=game.ship.v[1];
 	game.ship=planet_ship;
-	game.planetarySystem.planet.addChild(planet_ship);
+	game.ship.target=null;
+	game.planetarySystem.addChild(planet_ship);
 	game.planetarySystem.addChildAt(path.planet,0);
 	planet_ship.position.x=game.planetarySystem.planet.r+10;
 
@@ -788,9 +816,13 @@ function planetarySystem_initInteraction(){
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 
 	game.views.current = game.views.PLANET;
+	game.targetTimer=vars.misc.target_delay;
 }
 function solarSystem_initInteraction(){
+	solar_ship.v[0]=game.ship.v[0];
+	solar_ship.v[1]=game.ship.v[1];
 	game.ship=solar_ship;
+	game.ship.target=null;
 	game.solarSystem.addChild(solar_ship);
 	game.solarSystem.addChildAt(path.solar,0);
 	solar_ship.position.x=(game.solarSystem.orbits.length > 0 ? game.solarSystem.orbits[0].r : game.solarSystem.star.radius_outer)+10;
@@ -819,8 +851,13 @@ function solarSystem_initInteraction(){
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 
 	game.views.current = game.views.SOLAR;
+	game.targetTimer=vars.misc.target_delay;
 }
 function galacticSystem_initInteraction(){
+	galaxy_ship.v[0]=game.ship.v[0];
+	galaxy_ship.v[1]=game.ship.v[1];
+	game.ship=galaxy_ship;
+	game.ship.target=null;
 	ui.hitcircles=[];
 	for(var i=0;i < game.galacticSystem.stars.length;++i){
 		var star=game.galacticSystem.stars[i];
@@ -835,4 +872,5 @@ function galacticSystem_initInteraction(){
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
 	game.views.current = game.views.GALAXY;
+	game.targetTimer=vars.misc.target_delay;
 }

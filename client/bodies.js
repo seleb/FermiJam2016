@@ -114,7 +114,7 @@ function getGalacticSystem(_seed){
 		star.points=Math.round(range(rng,vars.range.star_points))*star.pointType;
 		star.radius_inner=range(rng,vars.range.star_radius_inner);
 		star.radius_outer=star.radius_inner+range(rng,vars.range.star_radius_outer);
-		star.r=star.radius_outer;
+		star.r=(star.radius_inner+star.radius_outer)/2;
 		star.rotationSpeed=range(rng,vars.range.star_rotation_speed)*galacticSystem.orbitDir;
 		if(rng.real() < vars.chance.star_reverse_orbit){
 			star.rotationSpeed*=-1;
@@ -161,7 +161,7 @@ function getSolarSystem(_star){
 	solarSystem.star.points=_star.points;
 	solarSystem.star.radius_inner=_star.radius_inner*vars.misc.star_zoom;
 	solarSystem.star.radius_outer=_star.radius_outer*vars.misc.star_zoom;
-	solarSystem.star.r=solarSystem.star.radius_outer;
+	solarSystem.star.r=(solarSystem.star.radius_inner+solarSystem.star.radius_outer)/2;
 
 	// setup orbits
 	solarSystem.orbits=[];

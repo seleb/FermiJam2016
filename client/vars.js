@@ -30,13 +30,15 @@ var vars={
 		orbit_elliptical:0.5,
 
 		planet_reverse_orbit:0.01,
-		planet_big:0.05
+		planet_big:0.05,
+
+		target_star:0.25
 	},
 	misc:{
 		ui_scale:12,
 		stroke_width:1,
 
-		transition_speed:1/60,
+		transition_speed:1/240,
 
 		min_interaction_radius:25,
 		dash:[3,5], // dash, dash+gap
@@ -45,6 +47,9 @@ var vars={
 		star_zoom:5,
 
 		planet_big_thresh:0.75, // percentage of planet_radius[1]
-		planet_big_mult:2
+		planet_big_mult:2,
+
+		target_timer:5000,
+		target_delay:4000
 	}
 };
