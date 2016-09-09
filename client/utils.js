@@ -7,14 +7,12 @@ function clamp(min,v,max){
 }
 
 
+// fullscreen toggle from https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API#Toggling_fullscreen_mode
+function isFullscreen(){
+	return !(!document.fullscreenElement&& !document.mozFullScreenElement&& !document.webkitFullscreenElement&& !document.msFullscreenElement);
+}
 function toggleFullscreen(){
-	// fullscreen toggle from https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API#Toggling_fullscreen_mode
-	if(
-		!document.fullscreenElement && 
-		!document.mozFullScreenElement && 
-		!document.webkitFullscreenElement && 
-		!document.msFullscreenElement
-	){
+	if(!isFullscreen()){
 		if (document.body.requestFullscreen) {
 			document.body.requestFullscreen();
 		} else if (document.body.msRequestFullscreen) {

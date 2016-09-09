@@ -15,8 +15,14 @@ var offset=[0,0];
 var size=[1280,720];
 
 var palette={
-	color1:0xEEEEEE,
-	color2:0x999999
+	current:-1,
+	a:[
+		[[000,000,000],[255,255,255]],
+		[[255,255,255],[000,000,000]],
+		[[200,200,200],[128,128,128]]
+	],
+	color1:null,
+	color2:null
 };
 
 var ui={
@@ -41,15 +47,17 @@ var ui={
 		ui.currentElement=null;
 		for(var i=0; i < ui.hitboxes.length; ++i){
 			var u=ui.hitboxes[i];
-			var p=new PIXI.Point(0,0);
-			p=u.e.toGlobal(p);
-			if(
-				mouse.pos[0] >= p.x &&
-				mouse.pos[1] >= p.y &&
-				mouse.pos[0] <= p.x+u.w &&
-				mouse.pos[1] <= p.y+u.h
-			){
-				ui.currentElement=u;
+			if(u.e.renderable){
+				var p=new PIXI.Point(0,0);
+				p=u.e.toGlobal(p);
+				if(
+					mouse.pos[0] >= p.x &&
+					mouse.pos[1] >= p.y &&
+					mouse.pos[0] <= p.x+u.w &&
+					mouse.pos[1] <= p.y+u.h
+				){
+					ui.currentElement=u;
+				}
 			}
 		}
 		var curr=Infinity;
@@ -77,36 +85,12 @@ var ui={
 		}else{
 			document.body.style.cursor = 'auto';
 		}
-
-
-		// update ui elements
-		for(var i=0; i < ui.layoutElements.length; ++i){
-			var u=ui.layoutElements[i];
-			u.ui.update();
-		}
 	}
 };
 
 var sounds=[];
 
 $(document).ready(function(){
-	$(document).on("mousemove",function(event){
-		mouse.pos=[event.pageX,event.pageY];
-	});
-
-	$(document).on("mousewheel DOMMouseScroll",function(event){
-		event=event.originalEvent;
-		var delta=event.detail||-event.wheelDelta;
-		game.messages.scrollOffset += delta > 0 ? -1 : 1;
-		game.messages.scrollOffset = clamp(0,game.messages.scrollOffset,game.messages.messages.length-vars.misc.message_displaySize);
-	});
-
-
-	$(document).on("click",function(event){
-		if(ui.currentElement!=null){
-			ui.currentElement.onClick();
-		}
-	});
 
 	// try to auto-focus and make sure the game can be focused with a click if run from an iframe
 	window.focus();
@@ -143,7 +127,7 @@ $(document).ready(function(){
 		}
 	);
 	renderer.visible=false;
-	renderer.backgroundColor = palette.color1;
+	renderer.backgroundColor = 0x000000;
 	renderer.view.style.opacity = "0";
 
 	PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.LINEAR;
@@ -168,8 +152,12 @@ $(document).ready(function(){
 	CustomFilter.prototype = Object.create(PIXI.Filter.prototype);
 	CustomFilter.prototype.constructor = CustomFilter;
 
+	PIXI.loader
+		.add('shader','assets/shader.frag');
 
-	setup();
+	PIXI.loader
+		.on("progress", loadProgressHandler)
+		.load(setup);
 });
 
 
@@ -185,89 +173,49 @@ function CustomFilter(fragmentSource){
 
 function loadProgressHandler(loader, resource){
 	// called during loading
-
 	console.log("loading: " + resource.url);
 	console.log("progress: " + loader.progress+"%");
-
-
-	//$("#canvas-overlay pre").append("\n"+Math.round(loader.progress)+"%...");
 }
 
 function setup(){
+	$(document).on("mousemove",function(event){
+		mouse.pos=[event.pageX,event.pageY];
+
+		// hide the UI if collapsed and mouse not nearby
+		if(!options.expanded){
+			var d=btnOptions.position;
+			btnOptions.renderable = Math.sqrt(Math.pow(mouse.pos[0]-d.x,2)+Math.pow(mouse.pos[1]-d.y,2)) < vars.misc.ui_scale*10;
+		}
+	});
+
+
+	$(document).on("click",function(event){
+		if(ui.currentElement!=null){
+			ui.currentElement.onClick();
+		}
+	});
 	
 	textStyle = {
 		fontFamily: 'Courier New, monospace',
 		fontSize:vars.misc.ui_scale+'px',
-		fill : palette.color2,
+		fill : 0xFFFFFF,
 		dropShadow : false,
 		wordWrap : false
 	};
 
-	function makeButton(_text){
-		var g = new PIXI.Graphics();
-
-		var t = new PIXI.Text(_text, textStyle);
-		g.addChild(t);
-		t.position.y=vars.misc.ui_scale;
-		t.position.x=vars.misc.ui_scale*5;
-		t.anchor.x=0.5;
-		t.anchor.y=0.5;
-
-		g.text=t;
-		g.update=function(){
-
-		};
-
-		return g;
-	};
-
-
+	var fragmentSrc = PIXI.loader.resources.shader.data;
+	filter = new CustomFilter(fragmentSrc);
+	renderSprite.filters = [filter];
 
 	// UI SETUP
-
-	var btnExplore=makeButton("explore");
-	var btnExpand=makeButton("expand");
-	var btnExploit=makeButton("exploit");
-	var btnExterminate=makeButton("exterminate");
-	
-
-	var btnOptions= new PIXI.Graphics();
-	btnOptions.update=function(){
-	};
-
-	ui.hitboxes.push({
-		e:btnExplore,
-		w:vars.misc.ui_scale*10,
-		h:vars.misc.ui_scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:explore_onClick
-	});
-
-	ui.hitboxes.push({
-		e:btnExpand,
-		w:vars.misc.ui_scale*10,
-		h:vars.misc.ui_scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:expand_onClick
-	});
-	ui.hitboxes.push({
-		e:btnExploit,
-		w:vars.misc.ui_scale*10,
-		h:vars.misc.ui_scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:exploit_onClick
-	});
-	ui.hitboxes.push({
-		e:btnExterminate,
-		w:vars.misc.ui_scale*10,
-		h:vars.misc.ui_scale*2,
-		onMouseOver:btn_onMouseOver,
-		onMouseOut:btn_onMouseOut,
-		onClick:exterminate_onClick
-	});
+	options={};
+	options.elements=[];
+	options.expanded=true;
+	btnOptions= new PIXI.Graphics();
+	var btnFullscreen= new PIXI.Graphics();
+	var btnPalette= new PIXI.Graphics();
+	var btnPaths= new PIXI.Graphics();
+	var btnReset= new PIXI.Graphics();
 
 	ui.hitboxes.push({
 		e:btnOptions,
@@ -275,32 +223,134 @@ function setup(){
 		h:vars.misc.ui_scale*2,
 		onMouseOver:function(){
 			this.e.clear();
-			this.e.beginFill(palette.color2);
-			this.e.lineStyle(1, palette.color2, 1);
-			this.e.drawRect(0,0,vars.misc.ui_scale*2,vars.misc.ui_scale*2);
-			this.e.endFill();
+			drawBox(this.e,true);
+			drawChevron(this.e,options.expanded,true);
 		},
 		onMouseOut:function(){
 			this.e.clear();
-			this.e.beginFill(palette.color1);
-			this.e.lineStyle(1, palette.color2, 1);
-			this.e.drawRect(0,0,vars.misc.ui_scale*2,vars.misc.ui_scale*2);
-			this.e.endFill();
+			drawBox(this.e,false);
+			drawChevron(this.e,options.expanded,false);
+		},
+		onClick:function(){
+			options.expanded=!options.expanded;
+			this.onMouseOver();
+			
+			for(var i=0; i < options.elements.length; ++i){
+				options.elements[i].renderable = options.expanded;
+			}
+		}
+	});
+
+
+	ui.hitboxes.push({
+		e:btnFullscreen,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
+		onMouseOver:function(){
+			this.e.clear();
+			drawBox(this.e,true);
+			drawFullscreen(this.e,isFullscreen(),true);
+		},
+		onMouseOut:function(){
+			this.e.clear();
+			drawBox(this.e,false);
+			drawFullscreen(this.e,isFullscreen(),false);
 		},
 		onClick:function(){
 			toggleFullscreen();
 		}
 	});
 
-	for(var i=ui.hitboxes.length-5;i<ui.hitboxes.length;++i){
+
+
+	ui.hitboxes.push({
+		e:btnPalette,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
+		onMouseOver:function(){
+			this.e.clear();
+			drawBox(this.e,true);
+			drawPalette(this.e,palette.current,true);
+		},
+		onMouseOut:function(){
+			this.e.clear();
+			drawBox(this.e,false);
+			drawPalette(this.e,palette.current,false);
+		},
+		onClick:function(){
+			++palette.current;
+			palette.current%=palette.a.length;
+			palette.color1=palette.a[palette.current][0];
+			palette.color2=palette.a[palette.current][1];
+
+
+			filter.uniforms.color1 = palette.color1;
+			filter.uniforms.color2 = palette.color2;
+
+			document.body.style.backgroundColor="rgb("+palette.color1[0]+","+palette.color1[1]+","+palette.color1[2]+")";
+
+			this.onMouseOver();
+		}
+	});
+	ui.hitboxes[ui.hitboxes.length-1].onClick();
+
+
+	ui.hitboxes.push({
+		e:btnPaths,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
+		onMouseOver:function(){
+			this.e.clear();
+			drawBox(this.e,true);
+			drawPaths(this.e,true);
+		},
+		onMouseOut:function(){
+			this.e.clear();
+			drawBox(this.e,false);
+			drawPaths(this.e,false);
+		},
+		onClick:function(){
+			path.visible=!path.visible;
+			path.planet.renderable=path.visible;
+			path.solar.renderable=path.visible;
+			path.galaxy.renderable=path.visible;
+		}
+	});
+
+
+	ui.hitboxes.push({
+		e:btnReset,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
+		onMouseOver:function(){
+			this.e.clear();
+			drawBox(this.e,true);
+			drawReset(this.e,true);
+		},
+		onMouseOut:function(){
+			this.e.clear();
+			drawBox(this.e,false);
+			drawReset(this.e,false);
+		},
+		onClick:function(){
+			window.location.reload(false);
+		}
+	});
+
+	for(var i=0;i<ui.hitboxes.length;++i){
 		ui.hitboxes[i].onMouseOut();
 	}
 	
-	ui.addToLayout(btnExplore,true,false,vars.misc.ui_scale,-vars.misc.ui_scale*3);
-	ui.addToLayout(btnExpand,true,false,vars.misc.ui_scale*12,-vars.misc.ui_scale*3);
-	ui.addToLayout(btnExploit,true,false,vars.misc.ui_scale*23,-vars.misc.ui_scale*3);
-	ui.addToLayout(btnExterminate,true,false,vars.misc.ui_scale*34,-vars.misc.ui_scale*3);
+	options.elements.push(btnFullscreen);
+	options.elements.push(btnPalette);
+	options.elements.push(btnPaths);
+	options.elements.push(btnReset);
+
 	ui.addToLayout(btnOptions,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*3);
+	ui.addToLayout(btnFullscreen,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*6);
+	ui.addToLayout(btnPalette,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*9);
+	ui.addToLayout(btnPaths,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*12);
+	ui.addToLayout(btnReset,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*15);
 
 	game.views=[];
 	game.solarSystem=null;
@@ -316,85 +366,78 @@ function setup(){
 	game.views.current = game.views.GALAXY;
 
 
-	galacticSystem_initInteraction();
-
-	// MESSAGE SETUP
-
-	game.messages={
-		messages:[],
-		messageBox:new PIXI.Graphics(),
-		scrollOffset:0
-	};
-	game.messages.messageBox.update=function(){
-		var self=game.messages.messageBox;
-		self.clear();
-		
-		// draw message box
-		self.beginFill(palette.color1);
-		self.lineStyle(1, palette.color2, 1);
-		self.drawRect(0,0,vars.misc.ui_scale*43,vars.misc.ui_scale*vars.misc.message_displaySize);
-		self.endFill();
-
-		// draw scrollbar thumb
-		self.beginFill(palette.color1);
-		self.lineStyle(1, palette.color2, 1);
-		self.drawRect(vars.misc.ui_scale*42,vars.misc.ui_scale*(vars.misc.message_displaySize-1)*(1-(game.messages.scrollOffset)/(game.messages.messages.length-vars.misc.message_displaySize)),vars.misc.ui_scale,vars.misc.ui_scale);
-		self.endFill();
-
-		// line separating scrollbar from message area
-		self.beginFill(palette.color1);
-		self.lineStyle(1, palette.color2, 1);
-		self.moveTo(vars.misc.ui_scale*42,vars.misc.ui_scale*vars.misc.message_displaySize);
-		self.lineTo(vars.misc.ui_scale*42,0);
-		self.endFill();
-
-
-
-		for(var i=0; i<game.messages.messages.length;++i){
-			var o=i-game.messages.scrollOffset;
-			if(o >= 0 && o < vars.misc.message_displaySize){
-				game.messages.messages[i].position.y=vars.misc.ui_scale*(vars.misc.message_displaySize-o);
-				game.messages.messages[i].visible=true;
-			}else{
-				game.messages.messages[i].visible=false;
-			}
-		}
-	};
-	ui.addToLayout(game.messages.messageBox,true,false,vars.misc.ui_scale,-vars.misc.ui_scale*(vars.misc.message_displaySize+4));
-	// some test messages
-
-
-	var textArray = [].concat(
-		postMessage("This is a single line."),
-		postMessage("This is two lines in one.\nHere's the other one."),
-		postMessage("This is a long paragraph that probably shouldn't fit in a single line and will wrap around instead. In fact, it's so long that it should take up at least three lines on its own."),
-		postMessage("..."),
-		postMessage("So hey, how's your day going?")
-	);
-
-
-
-
 
 	// SCENE HIERARCHY SETUP
 
 	game.addChild(game.galacticSystem);
-	
-	game.addChild(game.messages.messageBox);
-
-	game.addChild(btnExplore);
-	game.addChild(btnExpand);
-	game.addChild(btnExploit);
-	game.addChild(btnExterminate);
-	game.addChild(btnOptions);
-
-
 
 
 	scene.addChild(game);
 
 
+
+
+
+	galaxy_ship=new PIXI.Graphics();
+	galaxy_ship.beginFill(0xFFFFFF);
+	galaxy_ship.r=10;
+	galaxy_ship.lineStyle(vars.misc.stroke_width,0x000000);
+	galaxy_ship.drawCircle(0,0,galaxy_ship.r);
+	galaxy_ship.drawCircle(0,0,galaxy_ship.r/2);
+	galaxy_ship.endFill();
+	galaxy_ship.v=[0,0];
+	galaxy_ship.target=null;
+	galaxy_ship.position.x=game.galacticSystem.center.r;
+	game.galacticSystem.addChild(galaxy_ship);
+
+	solar_ship=new PIXI.Graphics();
+	solar_ship.beginFill(0xFFFFFF);
+	solar_ship.r=10;
+	solar_ship.lineStyle(vars.misc.stroke_width,0x000000);
+	solar_ship.drawCircle(0,0,solar_ship.r);
+	solar_ship.drawCircle(0,0,solar_ship.r/2);
+	solar_ship.endFill();
+	solar_ship.v=[0,0];
+	solar_ship.target=null;
+	solar_ship.position.x=game.galacticSystem.center.r;
+
+	planet_ship=new PIXI.Graphics();
+	planet_ship.beginFill(0xFFFFFF);
+	planet_ship.r=10;
+	planet_ship.lineStyle(vars.misc.stroke_width,0x000000);
+	planet_ship.drawCircle(0,0,planet_ship.r);
+	planet_ship.drawCircle(0,0,planet_ship.r/2);
+	planet_ship.endFill();
+	planet_ship.v=[0,0];
+	planet_ship.target=null;
+	planet_ship.position.x=game.galacticSystem.center.r;
+
+	game.ship=galaxy_ship;
+
+	game.autoPilot=true;
+	game.targetTimer=0;
+
+
+	path={
+		visible:true,
+		galaxy:new PIXI.Graphics(),
+		solar:new PIXI.Graphics(),
+		planet:new PIXI.Graphics(),
+		points:[]
+	};
+	game.galacticSystem.addChildAt(path.galaxy,0);
+	
+
+
+	// add UI last
+	game.addChild(btnOptions);
+	for(var i=0; i < options.elements.length; ++i){
+		game.addChild(options.elements[i]);
+	}
+
+
 	// start the main loop
+	galacticSystem_initInteraction();
 	window.onresize = onResize;
 	onResize();
 	main();
@@ -406,8 +449,109 @@ function setup(){
 
 function main(){
 	curTime=Date.now()-startTime;
+	deltaTime=curTime-lastTime;
 
 	ui.update();
+
+
+
+
+
+	// update ship
+	
+	// get new target
+	if(game.autoPilot){
+		game.targetTimer-=deltaTime;
+		if(game.targetTimer <= 0){
+			game.targetTimer=vars.misc.target_timer;
+			var rng=new MersenneTwister(curTime);
+			var t =ui.hitcircles[rng.int()%ui.hitcircles.length];
+			if(game.ship==solar_ship && rng.real() > vars.chance.target_star){
+				t=ui.hitcircles[ui.hitcircles.length-1];
+			}
+			t.onClick();
+		}
+	}
+
+	var p1=game.ship.toGlobal(new PIXI.Point(0,0));
+	var p5=[p1.x-size[0]*(game.views[game.views.current].viewEased+0.5)-offset[0], p1.y-size[1]/2-offset[1]];
+	while(path.points.length < 1024 && Math.abs(game.views[game.views.current].view) < 0.5){
+		path.points.push([p5,game.ship.v.slice()]);
+	}
+	var a=[Math.sin(curTime/3000)*Math.cos(curTime/4000)/3,Math.cos(curTime/2000)*Math.sin(curTime/5000)/3];
+	if(game.ship.target!=null){
+		var p2=game.ship.target.toGlobal(new PIXI.Point(0,0));
+		var a2=[p2.x-p1.x,p2.y-p1.y];
+
+
+		var l=Math.sqrt(a2[0]*a2[0]+a2[1]*a2[1]);
+		if(l > 1){
+			a2[0]/=l;
+			a2[1]/=l;
+		}
+		a[0]=lerp(a2[0],a[0],game.targetTimer/vars.misc.target_timer);
+		a[1]=lerp(a2[1],a[1],game.targetTimer/vars.misc.target_timer);
+
+		if(game.ship.onTarget!=null && l < game.ship.target.r+game.ship.r){
+			game.ship.target=null;
+			game.ship.onTarget();
+			game.ship.onTarget=null;
+		}
+	}
+	game.ship.v[0]+=a[0]/5;
+	game.ship.v[1]+=a[1]/5;
+	game.ship.v[0]*=0.95;
+	game.ship.v[1]*=0.95;
+	game.ship.position.x+=game.ship.v[0];
+	game.ship.position.y+=game.ship.v[1];
+
+
+	path.galaxy.clear();
+	path.solar.clear();
+	path.planet.clear();
+	if(path.points.length>0){
+		path.galaxy.moveTo(path.points[0][0][0],path.points[0][0][1]);
+		path.galaxy.lineStyle(vars.misc.stroke_width,0xFFFFFF);
+		path.solar.moveTo(path.points[0][0][0],path.points[0][0][1]);
+		path.solar.lineStyle(vars.misc.stroke_width,0xFFFFFF);
+		path.planet.moveTo(path.points[0][0][0],path.points[0][0][1]);
+		path.planet.lineStyle(vars.misc.stroke_width,0xFFFFFF);
+		path.points.shift();
+		for(var i = 0; i < path.points.length-1; ++i){
+			// smooth points
+			path.points[i][0][0]=lerp(path.points[i][0][0], path.points[i+1][0][0], 0.1);
+			path.points[i][0][1]=lerp(path.points[i][0][1], path.points[i+1][0][1], 0.1);
+			// add velocity
+			path.points[i][0][0]+=path.points[i][1][0];
+			path.points[i][0][1]+=path.points[i][1][1];
+			path.points[i][1][0]*=0.999;
+			path.points[i][1][1]*=0.999;
+		}
+
+		// draw points
+		for(var i = 0; i < path.points.length; ++i){
+			var skip = Math.abs(curTime/10)%(i+1) < 64;//path.points[i][2]%10 > 5;
+			if(skip){
+				path.galaxy.moveTo(path.points[i][0][0],path.points[i][0][1]);
+				path.solar.moveTo(path.points[i][0][0],path.points[i][0][1]);
+				path.planet.moveTo(path.points[i][0][0],path.points[i][0][1]);
+			}else{
+				path.galaxy.lineTo(path.points[i][0][0],path.points[i][0][1]);
+				path.solar.lineTo(path.points[i][0][0],path.points[i][0][1]);
+				path.planet.lineTo(path.points[i][0][0],path.points[i][0][1]);
+			}
+		}
+		path.galaxy.endFill();
+		path.solar.endFill();
+		path.planet.endFill();
+	}
+
+
+
+
+
+
+
 
 	// reposition views
 	for(var i = 0; i < game.views.length; ++i){
@@ -423,8 +567,8 @@ function main(){
 
 			offset[0]=lerp(offset[0],(0.5-mouse.pos[0]/size[0])*32 + Math.sin(curTime/2222)*16,0.05);
 			offset[1]=lerp(offset[1],(0.5-mouse.pos[1]/size[1])*32 + Math.sin(curTime/3333)*16,0.05);
-			v.position.x=size[0]*2/3 + v.viewEased*size[0] + offset[0];
-			v.position.y=(size[1]-(vars.misc.ui_scale*vars.misc.message_displaySize+2))/2 + offset[1];
+			v.position.x=size[0]*1/2 + v.viewEased*size[0] + offset[0];
+			v.position.y=size[1]*1/2 + offset[1];
 		}
 	}
 
@@ -455,7 +599,13 @@ function main(){
 			star.rotation=curTime/star.rotationSpeed;
 		}
 	}
+
+	// spin planet
+	if(game.planetarySystem!=null){
+		game.planetarySystem.planet.rotation=curTime/game.planetarySystem.planet.rotationSpeed;
+	}
 	
+
 
 	// render
 	renderer.render(scene,renderTexture);
@@ -514,109 +664,108 @@ function layoutUI(_idx){
 }
 
 
-
-
-
-
-function postMessage(_str){
-
-	var res=[];
-	var lines=_str.split("\n");
-	
-	// multiple lines
-	if(lines.length > 1){
-		while(lines.length > 0){
-			res=res.concat(postMessage(lines[0]));
-			lines=lines.slice(1);
-		}
-		return res;
-	}
-
-
-	// individual line
-
-	// split the input string into words
-	// add words to lines until an added word would overflow
-	// when this happens, save the current line and go to the next
-	var words=_str.split(" ");
-	var lines=[];
-	_str="";
-	while(words.length > 0){
-		if((_str.length + words[0].length+5)*0.4 > 27){
-			lines.unshift(_str);
-			_str="";
-		}else{
-			_str+=" "+words[0];
-			words=words.slice(1);
-		}
-	}
-	// if there's any _str left-over in the last line add it here
-	// (unless the _str is a perfect fit, we'll have missed the last bit in the loop)
-	if(_str.length>0){
-		lines.unshift(_str);
-	}
-
-	// add lines to screen
-	var l=lines.length;
-	while(lines.length > 0){
-		_str=lines[0];
-		if(l>1){
-			// multiline message
-			while((_str.length+5)*0.4 <= 27){
-				_str+=" ";
-			}
-			if(lines.length==1){
-				_str="/*"+_str+" *";
-			}else{
-				_str=" *"+_str;
-				if(lines.length==l){
-					_str=_str+" */";
-				}else{
-					_str+=" *";
-				}
-			}
-		}else{
-			_str="//"+_str;
-		}
-		var t = new PIXI.Text(_str, textStyle);
-		t.position.y=vars.misc.ui_scale*(4+lines.length);
-		t.position.x=vars.misc.ui_scale;
-		t.anchor.y=1;
-
-		lines=lines.slice(1);
-		res.push(t);
-		game.messages.messageBox.addChild(t);
-	}
-
-	game.messages.messages=res.concat(game.messages.messages);
-
-	while(game.messages.messages.length > vars.misc.message_bufferSize){
-		game.messages.messageBox.removeChild(game.messages.messages.pop());
-	}
-
-	return res;
-}
-
-
-
-
 // hover stuff
+function drawBox(_graphics,_filled){
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	if(!_filled){
+		_graphics.lineStyle(vars.misc.stroke_width, 0xFFFFFF, 1);
+	}
+	_graphics.drawRect(0,0,vars.misc.ui_scale*2,vars.misc.ui_scale*2);
+	_graphics.endFill();
+}
+function drawChevron(_graphics,_flipped,_filled){
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	if(_flipped){
+		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
+		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*2-vars.misc.ui_scale*1/2);
+		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
+	}else{
+		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*3/2);
+		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*1/2);
+		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*3/2);
+	}
+	_graphics.endFill();
+}
+function drawFullscreen(_graphics,_fullscreen,_filled){
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	if(_fullscreen){
+		_graphics.moveTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+	}else{
+		_graphics.moveTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*1/4);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*1/4);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+	}
+	_graphics.endFill();
+}
+function drawPalette(_graphics,_current,_filled){
+	for(var i=0; i < palette.a.length;++i){
+		_graphics.beginFill((_filled^i==palette.current) ? 0xFFFFFF : 0x000000);
+		_graphics.lineStyle(vars.misc.stroke_width, (_filled^i==palette.current) ? 0x000000 : 0xFFFFFF, 1);
+		var a=i/palette.a.length*Math.PI*2;
+		_graphics.drawCircle(
+			vars.misc.ui_scale+Math.cos(a)*vars.misc.ui_scale/2,
+			vars.misc.ui_scale+Math.sin(a)*vars.misc.ui_scale/2,
+			vars.misc.ui_scale/3);
+		_graphics.endFill();
+	}
+}
+function drawPaths(_graphics,_filled){
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	_graphics.drawCircle(vars.misc.ui_scale*1.5,vars.misc.ui_scale,vars.misc.ui_scale*1/3);
+	_graphics.moveTo(vars.misc.ui_scale/2,vars.misc.ui_scale);
+	_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale);
+	_graphics.endFill();
+}
+function drawReset(_graphics,_filled){
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	_graphics.arc(vars.misc.ui_scale,vars.misc.ui_scale,vars.misc.ui_scale/2, Math.PI*.5/2,Math.PI*3.5/2);
+	_graphics.drawCircle(vars.misc.ui_scale+Math.cos(Math.PI*3.5/2)*vars.misc.ui_scale/2,vars.misc.ui_scale+Math.sin(Math.PI*3.5/2)*vars.misc.ui_scale/2,vars.misc.ui_scale/5);
+	_graphics.endFill();
+}
 
 function btn_onMouseOver(){
 	this.e.clear();
-	this.e.beginFill(palette.color2);
-	this.e.lineStyle(1, palette.color2, 1);
+	this.e.beginFill(0xFFFFFF);
+	this.e.lineStyle(vars.misc.stroke_width, 0xFFFFFF, 1);
 	this.e.drawRect(0,0,vars.misc.ui_scale*10,vars.misc.ui_scale*2);
 	this.e.endFill();
-	this.e.text.style.fill=palette.color1;
+	this.e.text.style.fill=0x000000;
 };
 function btn_onMouseOut(){
 	this.e.clear();
-	this.e.beginFill(palette.color1);
-	this.e.lineStyle(1, palette.color2, 1);
+	this.e.beginFill(0x000000);
+	this.e.lineStyle(vars.misc.stroke_width, 0xFFFFFF, 1);
 	this.e.drawRect(0,0,vars.misc.ui_scale*10,vars.misc.ui_scale*2);
 	this.e.endFill();
-	this.e.text.style.fill=palette.color2;
+	this.e.text.style.fill=0xFFFFFF;
 };
 
 function planet_onMouseOver(){
@@ -634,168 +783,99 @@ function star_onMouseOut(){
 };
 
 
-
 // click stuff
-
-function explore_onClick(){
-	postMessage("executing 'cmd.explore()'...");
-	switch(game.views.current){
-		case game.views.PLANET:
-		console.log(descriptions.planet);
-
-		if(descriptions.planet.tagsToConsume.length > 0){
-
-			var rng=new MersenneTwister(game.planetarySystem.seed);
-			var tagIdx=Math.round(rng.real()*(descriptions.planet.tagsToConsume.length-1));
-			var tag=descriptions.planet.tagsToConsume[tagIdx];
-
-			var phrases=planet_descriptions[tag];
-
-			descriptions.planet.tagsToConsume.splice(tagIdx,1);
-			descriptions.planet.tagsConsumed.push(tag);
-
-
-			if(phrases && phrases.length > 0){
-				var phrase=phrases[Math.round(rng.real()*(phrases.length-1))];
-
-				postMessage(replaceWords(phrase,rng));
-			}else{
-				postMessage("Scanner error: indecipherable data discovered.");
-			}
-
-		}else{
-			postMessage("Nothing of interest left to report.");
-		}
-
-		break;
-		case game.views.SOLAR:
-		console.log(descriptions.solarSystem);
-		break;
-		case game.views.GALAXY:
-		console.log(descriptions.galaxy);
-		break;
-	}
-}
-function expand_onClick(){
-	postMessage("executing 'cmd.expand()'...");
-	switch(game.views.current){
-		case game.views.PLANET:
-		
-		break;
-		case game.views.SOLAR:
-		
-		break;
-		case game.views.GALAXY:
-		
-		break;
-	}
-}
-function exploit_onClick(){
-	postMessage("executing 'cmd.exploit()'...");
-	switch(game.views.current){
-		case game.views.PLANET:
-		
-		break;
-		case game.views.SOLAR:
-		
-		break;
-		case game.views.GALAXY:
-		
-		break;
-	}
-}
-function exterminate_onClick(){
-	postMessage("executing 'cmd.exterminate()'...\nSearching for targets...");
-	switch(game.views.current){
-		case game.views.PLANET:
-		postMessage("Targeting "+descriptions.planet.name+"...");
-		if(true){ // planet has life
-			// remove life
-			postMessage("Life on "+descriptions.planet.name+" exterminated.");
-		}else{
-			postMessage("No living targets found.");
-			postMessage("Command aborted.");
-		}
-		break;
-		case game.views.SOLAR:
-		postMessage("View resolution incompatible with 'cmd.exterminate()'.");
-		postMessage("Command aborted.");
-		break;
-		case game.views.GALAXY:
-		postMessage("View resolution incompatible with 'cmd.exterminate()'.");
-		postMessage("Command aborted.");
-		break;
-	}
-}
-
-
-
 function planetIn_onClick(){
-	if(game.planetarySystem!==null){
-		game.views[game.views.PLANET]=null;
-		game.removeChild(game.planetarySystem);
-	}
-	game.planetarySystem=getPlanetarySystem(this.e);
-	game.addChildAt(game.planetarySystem,0);
+	solar_ship.target=this.e;
 
-	game.solarSystem.viewTarget=-1;
+	solar_ship.onTarget=function(){
+		if(game.planetarySystem!==null){
+			game.views[game.views.PLANET]=null;
+			game.removeChild(game.planetarySystem);
+			game.planetarySystem.removeChild(planet_ship);
+			game.planetarySystem.removeChild(path.planet);
+			game.planetarySystem.destroy();
+		}
+		game.planetarySystem=getPlanetarySystem(this.e);
+		game.addChildAt(game.planetarySystem,0);
 
-	game.planetarySystem.viewTarget=0;
-	game.planetarySystem.view=1;
-	game.views.push(game.planetarySystem);
+		game.solarSystem.viewTarget=-1;
+		game.galacticSystem.viewTarget=-2;
 
-	planetarySystem_initInteraction();
+		game.planetarySystem.viewTarget=0;
+		game.planetarySystem.view=1;
+		game.views[game.views.PLANET]=game.planetarySystem;
 
-	postMessage("executing 'cmd.increaseResolution()'...");
-	postMessage("Viewing "+descriptions.planet.name+".");
+		planetarySystem_initInteraction();
+	}.bind(this);
 }
 
 function planetOut_onClick(){
-	game.planetarySystem.viewTarget=1;
-	game.solarSystem.viewTarget=0;
+	planet_ship.target=this.e;
+	planet_ship.onTarget=function(){
+		game.planetarySystem.viewTarget=1;
+		game.solarSystem.viewTarget=0;
+		game.galacticSystem.viewTarget=-1;
 
-	solarSystem_initInteraction();
-
-	postMessage("executing 'cmd.decreaseResolution()'...");
-	postMessage("Viewing "+descriptions.solarSystem.name+".");
+		solarSystem_initInteraction();
+	}
 }
 
 function starIn_onClick(){
+	galaxy_ship.target=this.e;
 
-	if(game.solarSystem!==null){
-		game.views[game.views.SOLAR]=null;
-		game.removeChild(game.solarSystem);
-	}
-	game.solarSystem=getSolarSystem(this.e);
-	game.addChildAt(game.solarSystem,0);
+	galaxy_ship.onTarget=function(){
+		if(game.solarSystem!==null){
+			game.views[game.views.SOLAR]=null;
+			game.removeChild(game.solarSystem);
+			game.solarSystem.removeChild(solar_ship);
+			game.solarSystem.removeChild(path.solar);
+			game.solarSystem.destroy();
+		}
+		game.solarSystem=getSolarSystem(this.e);
+		game.addChildAt(game.solarSystem,0);
 
-	game.galacticSystem.viewTarget=-1;
+		game.galacticSystem.viewTarget=-1;
+		if(game.plantarySystem){
+			game.plantarySystem.viewTarget=1;
+		}
 
-	game.solarSystem.viewTarget=0;
-	game.solarSystem.view=1;
-	game.views.push(game.solarSystem);
+		game.solarSystem.viewTarget=0;
+		game.solarSystem.view=1;
+		game.views[game.views.SOLAR]=game.solarSystem;
 
-	solarSystem_initInteraction();
-
-	postMessage("executing 'cmd.increaseResolution()'...");
-	postMessage("Viewing "+descriptions.solarSystem.name+".");
+		solarSystem_initInteraction();
+	}.bind(this);
 }
 
 function starOut_onClick(){
-	game.solarSystem.viewTarget=1;
-	game.galacticSystem.viewTarget=0;
+	solar_ship.target=this.e;
 
-	galacticSystem_initInteraction();
+	solar_ship.onTarget=function(){
+		game.solarSystem.viewTarget=1;
+		game.galacticSystem.viewTarget=0;
+		if(game.plantarySystem){
+			game.plantarySystem.viewTarget=2;
+		}
+		game.ship=galaxy_ship;
 
-	postMessage("executing 'cmd.decreaseResolution()'...");
-	postMessage("Viewing "+descriptions.galaxy.name+".");
+		galacticSystem_initInteraction();
+	}.bind(this);
 }
 
 
 
 
+// hitcircle stuff
 
 function planetarySystem_initInteraction(){
+	planet_ship.v[0]=game.ship.v[0];
+	planet_ship.v[1]=game.ship.v[1];
+	game.ship=planet_ship;
+	game.ship.target=null;
+	game.planetarySystem.addChild(planet_ship);
+	game.planetarySystem.addChildAt(path.planet,0);
+	planet_ship.position.x=game.planetarySystem.planet.r+10;
+
 	ui.hitcircles=[];
 	ui.hitcircles.push({
 		e:game.planetarySystem.planet,
@@ -807,9 +887,17 @@ function planetarySystem_initInteraction(){
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 
 	game.views.current = game.views.PLANET;
-	descriptions.planet = descriptions.getPlanetDescription(game.planetarySystem);
+	game.targetTimer=vars.misc.target_delay;
 }
 function solarSystem_initInteraction(){
+	solar_ship.v[0]=game.ship.v[0];
+	solar_ship.v[1]=game.ship.v[1];
+	game.ship=solar_ship;
+	game.ship.target=null;
+	game.solarSystem.addChild(solar_ship);
+	game.solarSystem.addChildAt(path.solar,0);
+	solar_ship.position.x=(game.solarSystem.orbits.length > 0 ? game.solarSystem.orbits[0].r : game.solarSystem.star.radius_outer)+10;
+
 	ui.hitcircles=[];
 	for(var i=0;i < game.solarSystem.orbits.length;++i){
 		var orbit=game.solarSystem.orbits[i];
@@ -834,9 +922,13 @@ function solarSystem_initInteraction(){
 	ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 
 	game.views.current = game.views.SOLAR;
-	descriptions.solarSystem = descriptions.getSolarSystemDescription(game.solarSystem);
+	game.targetTimer=vars.misc.target_delay;
 }
 function galacticSystem_initInteraction(){
+	galaxy_ship.v[0]=game.ship.v[0];
+	galaxy_ship.v[1]=game.ship.v[1];
+	game.ship=galaxy_ship;
+	game.ship.target=null;
 	ui.hitcircles=[];
 	for(var i=0;i < game.galacticSystem.stars.length;++i){
 		var star=game.galacticSystem.stars[i];
@@ -850,7 +942,6 @@ function galacticSystem_initInteraction(){
 		});
 		ui.hitcircles[ui.hitcircles.length-1].onMouseOut();
 	}
-// hitcircle stuff
 	game.views.current = game.views.GALAXY;
-	descriptions.galaxy = descriptions.getGalaxyDescription(game.galacticSystem);
+	game.targetTimer=vars.misc.target_delay;
 }

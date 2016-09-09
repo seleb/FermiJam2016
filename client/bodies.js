@@ -2,7 +2,7 @@ function renderGalaxy(_galaxy){
 	_galaxy.clear();
 
 	for(var a=0; a<_galaxy.arms.length; ++a){ 
-		_galaxy.lineStyle(1,palette.color2);
+		_galaxy.lineStyle(vars.misc.stroke_width,0xFFFFFF);
 		_galaxy.moveTo(0,0);
 		for(var i = 0; i < _galaxy.arms[a].length; ++i){
 			var p=_galaxy.arms[a][i];
@@ -14,9 +14,9 @@ function renderGalaxy(_galaxy){
 
 function renderStar(_graphics,_points,_pointType,_radiusInner,_radiusOuter,_filled){
 	_graphics.clear();
-	_graphics.beginFill(_filled ? palette.color2 : palette.color1);
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
 	if(!_filled){
-		_graphics.lineStyle(1,palette.color2);
+		_graphics.lineStyle(vars.misc.stroke_width,0xFFFFFF);
 	}
 	_graphics.moveTo(_radiusInner,0);
 	for(var i=1; i<=_points;++i){
@@ -30,9 +30,9 @@ function renderStar(_graphics,_points,_pointType,_radiusInner,_radiusOuter,_fill
 
 function renderPlanet(_graphics,_radius,_filled){
 	_graphics.clear();
-	_graphics.beginFill(_filled ? palette.color2 : palette.color1);
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
 	if(!_filled){
-		_graphics.lineStyle(1,palette.color2);
+		_graphics.lineStyle(vars.misc.stroke_width,0xFFFFFF);
 	}
 	_graphics.drawCircle(0,0,_radius);
 	_graphics.endFill();
@@ -49,7 +49,7 @@ function renderOrbit(_graphics,_radius){
 		skip+=1;
 		var a2=i/circumference*Math.PI*2;
 		if(skip<vars.misc.dash[0]){
-			_graphics.lineStyle(1,palette.color2,1);
+			_graphics.lineStyle(vars.misc.stroke_width,0xFFFFFF,1);
 			_graphics.moveTo(_radius*Math.cos(a1),_radius*Math.sin(a1));
 			_graphics.lineTo(_radius*Math.cos(a2),_radius*Math.sin(a2));
 			_graphics.endFill();
@@ -114,6 +114,7 @@ function getGalacticSystem(_seed){
 		star.points=Math.round(range(rng,vars.range.star_points))*star.pointType;
 		star.radius_inner=range(rng,vars.range.star_radius_inner);
 		star.radius_outer=star.radius_inner+range(rng,vars.range.star_radius_outer);
+		star.r=(star.radius_inner+star.radius_outer)/2;
 		star.rotationSpeed=range(rng,vars.range.star_rotation_speed)*galacticSystem.orbitDir;
 		if(rng.real() < vars.chance.star_reverse_orbit){
 			star.rotationSpeed*=-1;
@@ -160,6 +161,7 @@ function getSolarSystem(_star){
 	solarSystem.star.points=_star.points;
 	solarSystem.star.radius_inner=_star.radius_inner*vars.misc.star_zoom;
 	solarSystem.star.radius_outer=_star.radius_outer*vars.misc.star_zoom;
+	solarSystem.star.r=(solarSystem.star.radius_inner+solarSystem.star.radius_outer)/2;
 
 	// setup orbits
 	solarSystem.orbits=[];
@@ -224,6 +226,7 @@ function getPlanetarySystem(_planet){
 	planetarySystem.seed=_planet.seed;
 	planetarySystem.planet=new PIXI.Graphics();
 	planetarySystem.planet.r=_planet.r*vars.misc.planet_zoom;
+	planetarySystem.planet.rotationSpeed=range(rng,vars.range.planet_rotation_speed);
 
 	planetarySystem.originalPlanet=_planet;
 
@@ -231,132 +234,3 @@ function getPlanetarySystem(_planet){
 
 	return planetarySystem;
 }
-
-
-
-// descriptions
-var descriptions={
-	galaxy:null,
-	solarSystem:null,
-	planet:null,
-
-
-	planets:[],
-	solarSystems:[],
-
-	getPlanetDescription:function(_planet){
-		if(this.planets[_planet.seed]!=null){
-			return this.planets[_planet.seed];
-		}
-
-
-		var rng = new MersenneTwister(_planet.seed);
-		var d={};
-		d.solarSystem=this.solarSystem;
-		d.seed=_planet.seed;
-
-
-		d.tags=[];
-
-
-		// life
-		var l=false;
-		if(rng.real() < vars.chance.life_any){
-			if(rng.real() < vars.chance.life_flora){
-				d.tags.push("life_flora");
-				l=true;
-			}
-			if(rng.real() < vars.chance.life_fauna){
-				d.tags.push("life_fauna");
-				l=true;
-			}
-			if(rng.real() < vars.chance.life_basic){
-				d.tags.push("life_basic");
-				l=true;
-			}else if(rng.real() < vars.chance.life_developing){
-				d.tags.push("life_developing");
-				l=true;
-			}else if(rng.real() < vars.chance.life_intelligent){
-				d.tags.push("life_intelligent");
-				l=true;
-			}
-		}
-		if(!l){
-			d.tags.push("life_none");
-		}
-
-
-		// size
-		if(_planet.originalPlanet.r < lerp(vars.range.planet_radius[0],vars.range.planet_radius[1],0.33)){
-			d.tags.push("planet_size_small");
-		}else if(_planet.originalPlanet.r > lerp(vars.range.planet_radius[0],vars.range.planet_radius[1],0.66)){
-			if(_planet.originalPlanet.r > vars.range.planet_radius[1]){
-				d.tags.push("planet_size_extralarge");
-			}else{
-				d.tags.push("planet_size_large");
-			}
-		}else{
-			d.tags.push("planet_size_medium");
-		}
-
-		// distance
-		if(_planet.originalPlanet.orbit_radius < lerp(vars.range.orbit_radius[0],vars.range.orbit_radius[1],0.33)){
-			d.tags.push("planet_distance_near");
-		}else if(_planet.originalPlanet.orbit_radius > lerp(vars.range.orbit_radius[0],vars.range.orbit_radius[1],0.66)){
-			if(_planet.originalPlanet.orbit_radius > vars.range.planet_radius[1]){
-				d.tags.push("planet_distance_extrafar");
-			}else{
-				d.tags.push("planet_distance_far");
-			}
-		}else{
-			d.tags.push("planet_distance_medium");
-		}
-
-		// name
-		d.name = "Planet "+
-			(d.solarSystem.galaxy.seed.toString(16)+"."+
-			d.solarSystem.seed.toString(16)+"."+
-			d.seed.toString(16)).toUpperCase();
-
-		d.tagsToConsume=d.tags.slice();
-		d.tagsConsumed=[];
-
-		this.planets[_planet.seed]=d;
-		return d;
-	},
-
-	getSolarSystemDescription:function(_solarSystem){
-		if(this.solarSystems[_solarSystem.seed]!=null){
-			return this.solarSystems[_solarSystem.seed];
-		}
-
-
-		var rng = new MersenneTwister(_solarSystem.seed);
-		var d={};
-		d.galaxy=this.galaxy;
-		d.seed=_solarSystem.seed;
-
-		d. name = "Solar System "+
-			(d.galaxy.seed.toString(16)+"."+
-			d.seed.toString(16)).toUpperCase();
-
-		this.solarSystems[_solarSystem.seed]=d;
-		return d;
-	},
-
-	getGalaxyDescription:function(_galaxy){
-		if(this.galaxy!=null){
-			return this.galaxy;
-		}
-
-
-		var rng = new MersenneTwister(_galaxy.seed);
-		var d={};
-		d.seed=_galaxy.seed;
-
-		d.name = "Galaxy "+d.seed.toString(16).toUpperCase();
-
-		_galaxy=d;
-		return d;
-	}
-};
