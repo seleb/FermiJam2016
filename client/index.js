@@ -128,7 +128,7 @@ $(document).ready(function(){
 	// setup game
 	startTime=Date.now();
 	sounds["bgm"] = new Howl({
-		urls:["assets/audio/bgm.ogg"],
+		urls:["assets/audio/bgm-compressed.ogg"],
 		autoplay:true,
 		loop:true,
 		volume:0
@@ -219,7 +219,6 @@ function setup(){
 	$(document).on("click",function(event){
 		if(ui.currentElement!=null){
 			ui.currentElement.onClick();
-			console.log(sounds["tick"]);
 			sounds["tick"]._rate=Math.random()*0.1+1;
 			sounds["tick"].play();
 		}
@@ -673,20 +672,20 @@ function main(){
 	requestAnimationFrame(main);
 
 	// log FPS
-	++fpsCounter;
+	/*++fpsCounter;
 	if(fpsCounter>=100){
 		fpsCounter=0;
 		fpsAverage/=100;
 		console.log("FPS",fpsAverage);
 		fpsAverage=0;
 	}
-	fpsAverage+=1000/(curTime-lastTime);
+	fpsAverage+=1000/(curTime-lastTime);*/
 
 	lastTime=curTime;
 }
 
-fpsAverage=0;
-fpsCounter=0;
+/*fpsAverage=0;
+fpsCounter=0;*/
 
 function onResize() {
 	renderer.view.style.opacity = "0";
