@@ -478,13 +478,37 @@ function drawChevron(_graphics,_flipped,_filled){
 function drawFullscreen(_graphics,_fullscreen,_filled){
 	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
 	if(_fullscreen){
-		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
-		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*2-vars.misc.ui_scale*1/2);
-		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
+		_graphics.moveTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
 	}else{
-		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*3/2);
-		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*1/2);
-		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*3/2);
+		_graphics.moveTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*1/4);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*1/4);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+		_graphics.lineTo(vars.misc.ui_scale*2-vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+
+		_graphics.moveTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*2/3);
+		_graphics.lineTo(vars.misc.ui_scale*1/4,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
+		_graphics.lineTo(vars.misc.ui_scale*2/3,vars.misc.ui_scale*2-vars.misc.ui_scale*1/4);
 	}
 	_graphics.endFill();
 }
