@@ -35,7 +35,7 @@ var vars={
 		target_star:0.25
 	},
 	misc:{
-		ui_scale:12,
+		ui_scale:20,
 		stroke_width:1,
 
 		transition_speed:1/240,
