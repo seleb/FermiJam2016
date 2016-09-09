@@ -91,23 +91,6 @@ var ui={
 var sounds=[];
 
 $(document).ready(function(){
-	$(document).on("mousemove",function(event){
-		mouse.pos=[event.pageX,event.pageY];
-	});
-
-	$(document).on("mousewheel DOMMouseScroll",function(event){
-		event=event.originalEvent;
-		var delta=event.detail||-event.wheelDelta;
-		game.messages.scrollOffset += delta > 0 ? -1 : 1;
-		game.messages.scrollOffset = clamp(0,game.messages.scrollOffset,game.messages.messages.length-vars.misc.message_displaySize);
-	});
-
-
-	$(document).on("click",function(event){
-		if(ui.currentElement!=null){
-			ui.currentElement.onClick();
-		}
-	});
 
 	// try to auto-focus and make sure the game can be focused with a click if run from an iframe
 	window.focus();
@@ -195,6 +178,22 @@ function loadProgressHandler(loader, resource){
 }
 
 function setup(){
+	$(document).on("mousemove",function(event){
+		mouse.pos=[event.pageX,event.pageY];
+
+		// hide the UI if collapsed and mouse not nearby
+		if(!options.expanded){
+			var d=btnOptions.position;
+			btnOptions.renderable = Math.sqrt(Math.pow(mouse.pos[0]-d.x,2)+Math.pow(mouse.pos[1]-d.y,2)) < vars.misc.ui_scale*10;
+		}
+	});
+
+
+	$(document).on("click",function(event){
+		if(ui.currentElement!=null){
+			ui.currentElement.onClick();
+		}
+	});
 	
 	textStyle = {
 		fontFamily: 'Courier New, monospace',
@@ -212,9 +211,11 @@ function setup(){
 	options={};
 	options.elements=[];
 	options.expanded=true;
-	var btnOptions= new PIXI.Graphics();
+	btnOptions= new PIXI.Graphics();
 	var btnFullscreen= new PIXI.Graphics();
 	var btnPalette= new PIXI.Graphics();
+	var btnPaths= new PIXI.Graphics();
+	var btnReset= new PIXI.Graphics();
 
 	ui.hitboxes.push({
 		e:btnOptions,
@@ -293,16 +294,63 @@ function setup(){
 	});
 	ui.hitboxes[ui.hitboxes.length-1].onClick();
 
+
+	ui.hitboxes.push({
+		e:btnPaths,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
+		onMouseOver:function(){
+			this.e.clear();
+			drawBox(this.e,true);
+			drawPaths(this.e,true);
+		},
+		onMouseOut:function(){
+			this.e.clear();
+			drawBox(this.e,false);
+			drawPaths(this.e,false);
+		},
+		onClick:function(){
+			path.visible=!path.visible;
+			path.planet.renderable=path.visible;
+			path.solar.renderable=path.visible;
+			path.galaxy.renderable=path.visible;
+		}
+	});
+
+
+	ui.hitboxes.push({
+		e:btnReset,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
+		onMouseOver:function(){
+			this.e.clear();
+			drawBox(this.e,true);
+			drawReset(this.e,true);
+		},
+		onMouseOut:function(){
+			this.e.clear();
+			drawBox(this.e,false);
+			drawReset(this.e,false);
+		},
+		onClick:function(){
+			window.location.reload(false);
+		}
+	});
+
 	for(var i=0;i<ui.hitboxes.length;++i){
 		ui.hitboxes[i].onMouseOut();
 	}
 	
 	options.elements.push(btnFullscreen);
 	options.elements.push(btnPalette);
+	options.elements.push(btnPaths);
+	options.elements.push(btnReset);
 
 	ui.addToLayout(btnOptions,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*3);
 	ui.addToLayout(btnFullscreen,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*6);
 	ui.addToLayout(btnPalette,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*9);
+	ui.addToLayout(btnPaths,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*12);
+	ui.addToLayout(btnReset,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*15);
 
 	game.views=[];
 	game.solarSystem=null;
@@ -371,6 +419,7 @@ function setup(){
 
 
 	path={
+		visible:true,
 		galaxy:new PIXI.Graphics(),
 		solar:new PIXI.Graphics(),
 		planet:new PIXI.Graphics(),
@@ -675,7 +724,6 @@ function drawFullscreen(_graphics,_fullscreen,_filled){
 	_graphics.endFill();
 }
 function drawPalette(_graphics,_current,_filled){
-
 	for(var i=0; i < palette.a.length;++i){
 		_graphics.beginFill((_filled^i==palette.current) ? 0xFFFFFF : 0x000000);
 		_graphics.lineStyle(vars.misc.stroke_width, (_filled^i==palette.current) ? 0x000000 : 0xFFFFFF, 1);
@@ -686,6 +734,21 @@ function drawPalette(_graphics,_current,_filled){
 			vars.misc.ui_scale/3);
 		_graphics.endFill();
 	}
+}
+function drawPaths(_graphics,_filled){
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	_graphics.drawCircle(vars.misc.ui_scale*1.5,vars.misc.ui_scale,vars.misc.ui_scale*1/3);
+	_graphics.moveTo(vars.misc.ui_scale/2,vars.misc.ui_scale);
+	_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale);
+	_graphics.endFill();
+}
+function drawReset(_graphics,_filled){
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	_graphics.arc(vars.misc.ui_scale,vars.misc.ui_scale,vars.misc.ui_scale/2, Math.PI*.5/2,Math.PI*3.5/2);
+	_graphics.drawCircle(vars.misc.ui_scale+Math.cos(Math.PI*3.5/2)*vars.misc.ui_scale/2,vars.misc.ui_scale+Math.sin(Math.PI*3.5/2)*vars.misc.ui_scale/2,vars.misc.ui_scale/5);
+	_graphics.endFill();
 }
 
 function btn_onMouseOver(){
@@ -736,6 +799,7 @@ function planetIn_onClick(){
 		game.addChildAt(game.planetarySystem,0);
 
 		game.solarSystem.viewTarget=-1;
+		game.galacticSystem.viewTarget=-2;
 
 		game.planetarySystem.viewTarget=0;
 		game.planetarySystem.view=1;
@@ -750,6 +814,7 @@ function planetOut_onClick(){
 	planet_ship.onTarget=function(){
 		game.planetarySystem.viewTarget=1;
 		game.solarSystem.viewTarget=0;
+		game.galacticSystem.viewTarget=-1;
 
 		solarSystem_initInteraction();
 	}
@@ -770,6 +835,9 @@ function starIn_onClick(){
 		game.addChildAt(game.solarSystem,0);
 
 		game.galacticSystem.viewTarget=-1;
+		if(game.plantarySystem){
+			game.plantarySystem.viewTarget=1;
+		}
 
 		game.solarSystem.viewTarget=0;
 		game.solarSystem.view=1;
@@ -785,6 +853,9 @@ function starOut_onClick(){
 	solar_ship.onTarget=function(){
 		game.solarSystem.viewTarget=1;
 		game.galacticSystem.viewTarget=0;
+		if(game.plantarySystem){
+			game.plantarySystem.viewTarget=2;
+		}
 		game.ship=galaxy_ship;
 
 		galacticSystem_initInteraction();
