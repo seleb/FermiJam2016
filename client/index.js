@@ -133,15 +133,15 @@ $(document).ready(function(){
 		loop:true,
 		volume:0
 	});
-	sounds["bgm"].fadeIn(1,3000);
+	sounds["bgm"].fadeIn(0.2,1000);
 	sounds["tick"] = new Howl({
 		urls:["assets/audio/tick.ogg"],
 		autoplay:false,
 		loop:false,
-		volume:1
+		volume:0.5
 	});
 
-	Howler.mute();
+	//Howler.mute();
 
 	// create renderer
 	renderer = PIXI.autoDetectRenderer(
@@ -219,6 +219,9 @@ function setup(){
 	$(document).on("click",function(event){
 		if(ui.currentElement!=null){
 			ui.currentElement.onClick();
+			console.log(sounds["tick"]);
+			sounds["tick"]._rate=Math.random()*0.1+1;
+			sounds["tick"].play();
 		}
 	});
 	
@@ -238,11 +241,13 @@ function setup(){
 	options={};
 	options.elements=[];
 	options.expanded=true;
+	options.muted=false;
 	btnOptions= new PIXI.Graphics();
 	var btnFullscreen= new PIXI.Graphics();
 	var btnPalette= new PIXI.Graphics();
 	var btnPaths= new PIXI.Graphics();
 	var btnReset= new PIXI.Graphics();
+	var btnMute= new PIXI.Graphics();
 
 	ui.hitboxes.push({
 		e:btnOptions,
@@ -364,6 +369,32 @@ function setup(){
 		}
 	});
 
+	ui.hitboxes.push({
+		e:btnMute,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
+		onMouseOver:function(){
+			this.e.clear();
+			drawBox(this.e,true);
+			drawMute(this.e,true);
+		},
+		onMouseOut:function(){
+			this.e.clear();
+			drawBox(this.e,false);
+			drawMute(this.e,false);
+		},
+		onClick:function(){
+			options.muted=!options.muted;
+			if(options.muted){
+				sounds["bgm"].fadeOut(0,1000);
+				sounds["tick"]._volume=0;
+			}else{
+				sounds["bgm"].fadeIn(0.2,1000);
+				sounds["tick"]._volume=0.5;
+			}
+		}
+	});
+
 	for(var i=0;i<ui.hitboxes.length;++i){
 		ui.hitboxes[i].onMouseOut();
 	}
@@ -372,12 +403,14 @@ function setup(){
 	options.elements.push(btnPalette);
 	options.elements.push(btnPaths);
 	options.elements.push(btnReset);
+	options.elements.push(btnMute);
 
 	ui.addToLayout(btnOptions,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*3);
-	ui.addToLayout(btnFullscreen,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*6);
-	ui.addToLayout(btnPalette,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*9);
-	ui.addToLayout(btnPaths,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*12);
-	ui.addToLayout(btnReset,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*15);
+	ui.addToLayout(btnPalette,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*18);
+	ui.addToLayout(btnFullscreen,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*15);
+	ui.addToLayout(btnMute,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*12);
+	ui.addToLayout(btnPaths,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*9);
+	ui.addToLayout(btnReset,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*6);
 
 	game.views=[];
 	game.solarSystem=null;
@@ -775,6 +808,37 @@ function drawReset(_graphics,_filled){
 	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
 	_graphics.arc(vars.misc.ui_scale,vars.misc.ui_scale,vars.misc.ui_scale/2, Math.PI*.5/2,Math.PI*3.5/2);
 	_graphics.drawCircle(vars.misc.ui_scale+Math.cos(Math.PI*3.5/2)*vars.misc.ui_scale/2,vars.misc.ui_scale+Math.sin(Math.PI*3.5/2)*vars.misc.ui_scale/2,vars.misc.ui_scale/5);
+	_graphics.endFill();
+}
+function drawMute(_graphics,_filled){
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	_graphics.drawCircle(vars.misc.ui_scale*0.8,vars.misc.ui_scale,vars.misc.ui_scale*0.6);
+	_graphics.endFill();
+
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(0);
+	_graphics.drawRect(1,1,vars.misc.ui_scale*1-2,vars.misc.ui_scale*2-2);
+	_graphics.endFill();
+
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	_graphics.drawCircle(vars.misc.ui_scale*0.6,vars.misc.ui_scale,vars.misc.ui_scale*0.5);
+	_graphics.endFill();
+
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(0);
+	_graphics.drawRect(1,1,vars.misc.ui_scale*0.8-2,vars.misc.ui_scale*2-2);
+	_graphics.endFill();
+
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	_graphics.drawCircle(vars.misc.ui_scale*0.5,vars.misc.ui_scale,vars.misc.ui_scale*0.33);
+	_graphics.endFill();
+
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	_graphics.lineStyle(0);
+	_graphics.drawRect(1,1,vars.misc.ui_scale*0.6-2,vars.misc.ui_scale*2-2);
 	_graphics.endFill();
 }
 
