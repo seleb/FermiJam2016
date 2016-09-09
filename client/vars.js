@@ -9,7 +9,7 @@ var vars={
 
 		galaxy_radius:[200,250],
 		galaxy_arms:[2,8],
-		galaxy_curve:[0.1,6], // (positive only, flipped in different step)
+		galaxy_curve:[0.2,6], // (positive only, flipped in different step)
 		galaxy_num_stars:[4,16],
 		galaxy_rotation_speed:[4000,8000], // (positive only, flipped in different step)
 
