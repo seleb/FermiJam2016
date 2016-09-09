@@ -563,6 +563,7 @@ function planetIn_onClick(){
 	if(game.planetarySystem!==null){
 		game.views[game.views.PLANET]=null;
 		game.removeChild(game.planetarySystem);
+		game.planetarySystem.destroy();
 	}
 	game.planetarySystem=getPlanetarySystem(this.e);
 	game.addChildAt(game.planetarySystem,0);
@@ -571,7 +572,7 @@ function planetIn_onClick(){
 
 	game.planetarySystem.viewTarget=0;
 	game.planetarySystem.view=1;
-	game.views.push(game.planetarySystem);
+	game.views[game.views.PLANET]=game.planetarySystem;
 
 	planetarySystem_initInteraction();
 }
@@ -588,6 +589,7 @@ function starIn_onClick(){
 	if(game.solarSystem!==null){
 		game.views[game.views.SOLAR]=null;
 		game.removeChild(game.solarSystem);
+		game.solarSystem.destroy();
 	}
 	game.solarSystem=getSolarSystem(this.e);
 	game.addChildAt(game.solarSystem,0);
@@ -596,7 +598,7 @@ function starIn_onClick(){
 
 	game.solarSystem.viewTarget=0;
 	game.solarSystem.view=1;
-	game.views.push(game.solarSystem);
+	game.views[game.views.SOLAR]=game.solarSystem;
 
 	solarSystem_initInteraction();
 }
