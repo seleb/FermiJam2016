@@ -440,10 +440,10 @@ function setup(){
 
 	galaxy_ship=new PIXI.Graphics();
 	galaxy_ship.beginFill(0xFFFFFF);
-	galaxy_ship.r=10;
-	galaxy_ship.lineStyle(vars.misc.stroke_width,0x000000);
+	galaxy_ship.r=3;
 	galaxy_ship.drawCircle(0,0,galaxy_ship.r);
-	galaxy_ship.drawCircle(0,0,galaxy_ship.r/2);
+	galaxy_ship.lineStyle(vars.misc.stroke_width,0x000000);
+	galaxy_ship.drawCircle(0,0,galaxy_ship.r*0.618);
 	galaxy_ship.endFill();
 	galaxy_ship.v=[0,0];
 	galaxy_ship.target=null;
@@ -452,10 +452,10 @@ function setup(){
 
 	solar_ship=new PIXI.Graphics();
 	solar_ship.beginFill(0xFFFFFF);
-	solar_ship.r=10;
-	solar_ship.lineStyle(vars.misc.stroke_width,0x000000);
+	solar_ship.r=5;
 	solar_ship.drawCircle(0,0,solar_ship.r);
-	solar_ship.drawCircle(0,0,solar_ship.r/2);
+	solar_ship.lineStyle(vars.misc.stroke_width,0x000000);
+	solar_ship.drawCircle(0,0,solar_ship.r*0.618);
 	solar_ship.endFill();
 	solar_ship.v=[0,0];
 	solar_ship.target=null;
@@ -464,9 +464,9 @@ function setup(){
 	planet_ship=new PIXI.Graphics();
 	planet_ship.beginFill(0xFFFFFF);
 	planet_ship.r=10;
-	planet_ship.lineStyle(vars.misc.stroke_width,0x000000);
 	planet_ship.drawCircle(0,0,planet_ship.r);
-	planet_ship.drawCircle(0,0,planet_ship.r/2);
+	planet_ship.lineStyle(vars.misc.stroke_width,0x000000);
+	planet_ship.drawCircle(0,0,planet_ship.r*0.618);
 	planet_ship.endFill();
 	planet_ship.v=[0,0];
 	planet_ship.target=null;
