@@ -12,7 +12,7 @@ var vars={
 		galaxy_radius:[200,250],
 		galaxy_arms:[2,8],
 		galaxy_curve:[0.2,6], // (positive only, flipped in different step)
-		galaxy_num_stars:[4,16],
+		galaxy_num_stars:[16,32],
 		galaxy_rotation_speed:[4000,8000], // (positive only, flipped in different step)
 
 		orbit_radius:[10,150], // added to star_radius_outer and planet_radius

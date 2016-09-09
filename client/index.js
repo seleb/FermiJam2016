@@ -493,7 +493,7 @@ function main(){
 			game.targetTimer=vars.misc.target_timer;
 			var rng=new MersenneTwister(curTime);
 			var t =ui.hitcircles[rng.int()%ui.hitcircles.length];
-			if(game.ship==solar_ship && rng.real() > vars.chance.target_star){
+			if(game.ship==solar_ship && rng.real() < vars.chance.target_star){
 				t=ui.hitcircles[ui.hitcircles.length-1];
 			}
 			t.onClick();
