@@ -2,7 +2,7 @@ function renderGalaxy(_galaxy){
 	_galaxy.clear();
 
 	for(var a=0; a<_galaxy.arms.length; ++a){ 
-		_galaxy.lineStyle(1,palette.color2);
+		_galaxy.lineStyle(vars.misc.stroke_width,0xFFFFFF);
 		_galaxy.moveTo(0,0);
 		for(var i = 0; i < _galaxy.arms[a].length; ++i){
 			var p=_galaxy.arms[a][i];
@@ -14,9 +14,9 @@ function renderGalaxy(_galaxy){
 
 function renderStar(_graphics,_points,_pointType,_radiusInner,_radiusOuter,_filled){
 	_graphics.clear();
-	_graphics.beginFill(_filled ? palette.color2 : palette.color1);
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
 	if(!_filled){
-		_graphics.lineStyle(1,palette.color2);
+		_graphics.lineStyle(vars.misc.stroke_width,0xFFFFFF);
 	}
 	_graphics.moveTo(_radiusInner,0);
 	for(var i=1; i<=_points;++i){
@@ -30,9 +30,9 @@ function renderStar(_graphics,_points,_pointType,_radiusInner,_radiusOuter,_fill
 
 function renderPlanet(_graphics,_radius,_filled){
 	_graphics.clear();
-	_graphics.beginFill(_filled ? palette.color2 : palette.color1);
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
 	if(!_filled){
-		_graphics.lineStyle(1,palette.color2);
+		_graphics.lineStyle(vars.misc.stroke_width,0xFFFFFF);
 	}
 	_graphics.drawCircle(0,0,_radius);
 	_graphics.endFill();
@@ -49,7 +49,7 @@ function renderOrbit(_graphics,_radius){
 		skip+=1;
 		var a2=i/circumference*Math.PI*2;
 		if(skip<vars.misc.dash[0]){
-			_graphics.lineStyle(1,palette.color2,1);
+			_graphics.lineStyle(vars.misc.stroke_width,0xFFFFFF,1);
 			_graphics.moveTo(_radius*Math.cos(a1),_radius*Math.sin(a1));
 			_graphics.lineTo(_radius*Math.cos(a2),_radius*Math.sin(a2));
 			_graphics.endFill();

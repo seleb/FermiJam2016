@@ -15,8 +15,14 @@ var offset=[0,0];
 var size=[1280,720];
 
 var palette={
-	color1:0xEEEEEE,
-	color2:0x999999
+	current:-1,
+	a:[
+		[[000,000,000],[255,255,255]],
+		[[255,255,255],[000,000,000]],
+		[[200,200,200],[128,128,128]]
+	],
+	color1:null,
+	color2:null
 };
 
 var ui={
@@ -41,15 +47,17 @@ var ui={
 		ui.currentElement=null;
 		for(var i=0; i < ui.hitboxes.length; ++i){
 			var u=ui.hitboxes[i];
-			var p=new PIXI.Point(0,0);
-			p=u.e.toGlobal(p);
-			if(
-				mouse.pos[0] >= p.x &&
-				mouse.pos[1] >= p.y &&
-				mouse.pos[0] <= p.x+u.w &&
-				mouse.pos[1] <= p.y+u.h
-			){
-				ui.currentElement=u;
+			if(u.e.renderable){
+				var p=new PIXI.Point(0,0);
+				p=u.e.toGlobal(p);
+				if(
+					mouse.pos[0] >= p.x &&
+					mouse.pos[1] >= p.y &&
+					mouse.pos[0] <= p.x+u.w &&
+					mouse.pos[1] <= p.y+u.h
+				){
+					ui.currentElement=u;
+				}
 			}
 		}
 		var curr=Infinity;
@@ -136,7 +144,7 @@ $(document).ready(function(){
 		}
 	);
 	renderer.visible=false;
-	renderer.backgroundColor = palette.color1;
+	renderer.backgroundColor = 0x000000;
 	renderer.view.style.opacity = "0";
 
 	PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.LINEAR;
@@ -161,8 +169,12 @@ $(document).ready(function(){
 	CustomFilter.prototype = Object.create(PIXI.Filter.prototype);
 	CustomFilter.prototype.constructor = CustomFilter;
 
+	PIXI.loader
+		.add('shader','assets/shader.frag');
 
-	setup();
+	PIXI.loader
+		.on("progress", loadProgressHandler)
+		.load(setup);
 });
 
 
@@ -178,12 +190,8 @@ function CustomFilter(fragmentSource){
 
 function loadProgressHandler(loader, resource){
 	// called during loading
-
 	console.log("loading: " + resource.url);
 	console.log("progress: " + loader.progress+"%");
-
-
-	//$("#canvas-overlay pre").append("\n"+Math.round(loader.progress)+"%...");
 }
 
 function setup(){
@@ -191,34 +199,22 @@ function setup(){
 	textStyle = {
 		fontFamily: 'Courier New, monospace',
 		fontSize:vars.misc.ui_scale+'px',
-		fill : palette.color2,
+		fill : 0xFFFFFF,
 		dropShadow : false,
 		wordWrap : false
 	};
 
-	function makeButton(_text){
-		var g = new PIXI.Graphics();
-
-		var t = new PIXI.Text(_text, textStyle);
-		g.addChild(t);
-		t.position.y=vars.misc.ui_scale;
-		t.position.x=vars.misc.ui_scale*5;
-		t.anchor.x=0.5;
-		t.anchor.y=0.5;
-
-		g.text=t;
-		g.update=function(){
-
-		};
-
-		return g;
-	};
-
-
+	var fragmentSrc = PIXI.loader.resources.shader.data;
+	filter = new CustomFilter(fragmentSrc);
+	renderSprite.filters = [filter];
 
 	// UI SETUP
-
+	options={};
+	options.elements=[];
+	options.expanded=true;
 	var btnOptions= new PIXI.Graphics();
+	var btnFullscreen= new PIXI.Graphics();
+	var btnPalette= new PIXI.Graphics();
 
 	ui.hitboxes.push({
 		e:btnOptions,
@@ -226,28 +222,83 @@ function setup(){
 		h:vars.misc.ui_scale*2,
 		onMouseOver:function(){
 			this.e.clear();
-			this.e.beginFill(palette.color2);
-			this.e.lineStyle(1, palette.color2, 1);
-			this.e.drawRect(0,0,vars.misc.ui_scale*2,vars.misc.ui_scale*2);
-			this.e.endFill();
+			drawBox(this.e,true);
+			drawChevron(this.e,options.expanded,true);
 		},
 		onMouseOut:function(){
 			this.e.clear();
-			this.e.beginFill(palette.color1);
-			this.e.lineStyle(1, palette.color2, 1);
-			this.e.drawRect(0,0,vars.misc.ui_scale*2,vars.misc.ui_scale*2);
-			this.e.endFill();
+			drawBox(this.e,false);
+			drawChevron(this.e,options.expanded,false);
+		},
+		onClick:function(){
+			options.expanded=!options.expanded;
+			this.onMouseOver();
+			
+			for(var i=0; i < options.elements.length; ++i){
+				options.elements[i].renderable = options.expanded;
+			}
+		}
+	});
+
+
+	ui.hitboxes.push({
+		e:btnFullscreen,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
+		onMouseOver:function(){
+			this.e.clear();
+			drawBox(this.e,true);
+			drawFullscreen(this.e,isFullscreen(),true);
+		},
+		onMouseOut:function(){
+			this.e.clear();
+			drawBox(this.e,false);
+			drawFullscreen(this.e,isFullscreen(),false);
 		},
 		onClick:function(){
 			toggleFullscreen();
 		}
 	});
 
+
+
+	ui.hitboxes.push({
+		e:btnPalette,
+		w:vars.misc.ui_scale*2,
+		h:vars.misc.ui_scale*2,
+		onMouseOver:function(){
+			this.e.clear();
+			drawBox(this.e,true);
+			drawPalette(this.e,palette.current,true);
+		},
+		onMouseOut:function(){
+			this.e.clear();
+			drawBox(this.e,false);
+			drawPalette(this.e,palette.current,false);
+		},
+		onClick:function(){
+			++palette.current;
+			palette.current%=palette.a.length;
+			palette.color1=palette.a[palette.current][0];
+			palette.color2=palette.a[palette.current][1];
+
+
+			filter.uniforms.color1 = palette.color1;
+			filter.uniforms.color2 = palette.color2;
+		}
+	});
+	ui.hitboxes[ui.hitboxes.length-1].onClick();
+
 	for(var i=0;i<ui.hitboxes.length;++i){
 		ui.hitboxes[i].onMouseOut();
 	}
 	
+	options.elements.push(btnFullscreen);
+	options.elements.push(btnPalette);
+
 	ui.addToLayout(btnOptions,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*3);
+	ui.addToLayout(btnFullscreen,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*6);
+	ui.addToLayout(btnPalette,false,false,-vars.misc.ui_scale*3,-vars.misc.ui_scale*9);
 
 	game.views=[];
 	game.solarSystem=null;
@@ -270,12 +321,12 @@ function setup(){
 	game.addChild(game.galacticSystem);
 	
 	game.addChild(btnOptions);
-
-
+	for(var i=0; i < options.elements.length; ++i){
+		game.addChild(options.elements[i]);
+	}
 
 
 	scene.addChild(game);
-
 
 	// start the main loop
 	window.onresize = onResize;
@@ -398,22 +449,69 @@ function layoutUI(_idx){
 
 
 // hover stuff
+function drawBox(_graphics,_filled){
+	_graphics.beginFill(_filled ? 0xFFFFFF : 0x000000);
+	if(!_filled){
+		_graphics.lineStyle(vars.misc.stroke_width, 0xFFFFFF, 1);
+	}
+	_graphics.drawRect(0,0,vars.misc.ui_scale*2,vars.misc.ui_scale*2);
+	_graphics.endFill();
+}
+function drawChevron(_graphics,_flipped,_filled){
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	if(_flipped){
+		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
+		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*2-vars.misc.ui_scale*1/2);
+		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
+	}else{
+		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*3/2);
+		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*1/2);
+		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*3/2);
+	}
+	_graphics.endFill();
+}
+function drawFullscreen(_graphics,_fullscreen,_filled){
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	if(_fullscreen){
+		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
+		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*2-vars.misc.ui_scale*1/2);
+		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
+	}else{
+		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*3/2);
+		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*1/2);
+		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*3/2);
+	}
+	_graphics.endFill();
+}
+function drawPalette(_graphics,_current,_filled){
+	_graphics.lineStyle(vars.misc.stroke_width, _filled ? 0x000000 : 0xFFFFFF, 1);
+	if(_current){
+		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
+		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*2-vars.misc.ui_scale*1/2);
+		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*2-vars.misc.ui_scale*3/2);
+	}else{
+		_graphics.moveTo(vars.misc.ui_scale*1/2,vars.misc.ui_scale*3/2);
+		_graphics.lineTo(vars.misc.ui_scale,vars.misc.ui_scale*1/2);
+		_graphics.lineTo(vars.misc.ui_scale*3/2,vars.misc.ui_scale*3/2);
+	}
+	_graphics.endFill();
+}
 
 function btn_onMouseOver(){
 	this.e.clear();
-	this.e.beginFill(palette.color2);
-	this.e.lineStyle(1, palette.color2, 1);
+	this.e.beginFill(0xFFFFFF);
+	this.e.lineStyle(vars.misc.stroke_width, 0xFFFFFF, 1);
 	this.e.drawRect(0,0,vars.misc.ui_scale*10,vars.misc.ui_scale*2);
 	this.e.endFill();
-	this.e.text.style.fill=palette.color1;
+	this.e.text.style.fill=0x000000;
 };
 function btn_onMouseOut(){
 	this.e.clear();
-	this.e.beginFill(palette.color1);
-	this.e.lineStyle(1, palette.color2, 1);
+	this.e.beginFill(0x000000);
+	this.e.lineStyle(vars.misc.stroke_width, 0xFFFFFF, 1);
 	this.e.drawRect(0,0,vars.misc.ui_scale*10,vars.misc.ui_scale*2);
 	this.e.endFill();
-	this.e.text.style.fill=palette.color2;
+	this.e.text.style.fill=0xFFFFFF;
 };
 
 function planet_onMouseOver(){

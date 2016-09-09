@@ -40,6 +40,7 @@ var vars={
 	},
 	misc:{
 		ui_scale:12,
+		stroke_width:1,
 
 		transition_speed:1/60,
 
