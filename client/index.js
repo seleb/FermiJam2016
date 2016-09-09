@@ -19,11 +19,38 @@ var palette={
 	a:[
 		[[000,000,000],[255,255,255]],
 		[[255,255,255],[000,000,000]],
-		[[200,200,200],[128,128,128]]
+		[[200,200,200],[128,128,128]],
+		[[197,103,210],[023,255,255]],
+		[[146,143,046],[181,161,227]],
+		[[017,055,083],[144,196,178]],
+		[[098,075,078],[056,039,000]],
+		[[110,099,128],[047,017,053]],
+		[[141,176,188],[144,094,080]],
+		[[254,243,128],[089,021,009]],
+		[[095,071,195],[255,174,116]],
+		[[047,139,110],[163,195,081]]
 	],
 	color1:null,
 	color2:null
 };
+
+palette.a.push([
+	[lerp(palette.a[4][0][0],palette.a[3][1][2],0.5),lerp(palette.a[5][1][1],palette.a[3][0][2],0.5),lerp(palette.a[0][0][2],palette.a[9][1][1],0.5)],
+	[lerp(palette.a[4][1][0],palette.a[3][1][0],0.5),lerp(palette.a[6][0][1],palette.a[6][0][2],0.5),lerp(palette.a[9][1][1],palette.a[8][1][2],0.5)]
+]);
+palette.a.push([
+	[lerp(palette.a[3][0][0],palette.a[1][1][1],0.5),lerp(palette.a[1][1][1],palette.a[6][0][0],0.5),lerp(palette.a[7][0][2],palette.a[7][0][1],0.5)],
+	[lerp(palette.a[5][1][2],palette.a[2][1][2],0.5),lerp(palette.a[5][1][1],palette.a[5][0][2],0.5),lerp(palette.a[8][1][1],palette.a[6][0][0],0.5)]
+]);
+palette.a.push([
+	[lerp(palette.a[1][1][3],palette.a[3][1][1],0.5),lerp(palette.a[4][0][1],palette.a[5][1][1],0.5),lerp(palette.a[5][0][1],palette.a[5][0][2],0.5)],
+	[lerp(palette.a[2][0][0],palette.a[4][0][0],0.5),lerp(palette.a[5][1][1],palette.a[6][0][2],0.5),lerp(palette.a[4][0][2],palette.a[4][0][1],0.5)]
+]);
+palette.a.push([
+	[lerp(palette.a[0][1][0],palette.a[3][1][0],0.5),lerp(palette.a[9][0][1],palette.a[2][0][2],0.5),lerp(palette.a[2][0][2],palette.a[3][1][1],0.5)],
+	[lerp(palette.a[3][1][1],palette.a[2][1][1],0.5),lerp(palette.a[5][0][1],palette.a[6][1][2],0.5),lerp(palette.a[1][1][0],palette.a[2][0][0],0.5)]
+]);
+palette.a.push([[128,128,128],[200,200,200]]);
 
 var ui={
 	currentElement:null,
@@ -725,13 +752,13 @@ function drawFullscreen(_graphics,_fullscreen,_filled){
 }
 function drawPalette(_graphics,_current,_filled){
 	for(var i=0; i < palette.a.length;++i){
-		_graphics.beginFill((_filled^i==palette.current) ? 0xFFFFFF : 0x000000);
-		_graphics.lineStyle(vars.misc.stroke_width, (_filled^i==palette.current) ? 0x000000 : 0xFFFFFF, 1);
+		_graphics.beginFill((_filled^i!=palette.current) ? 0xFFFFFF : 0x000000);
+		_graphics.lineStyle(vars.misc.stroke_width, (_filled^i!=palette.current) ? 0x000000 : 0xFFFFFF, 1);
 		var a=i/palette.a.length*Math.PI*2;
 		_graphics.drawCircle(
 			vars.misc.ui_scale+Math.cos(a)*vars.misc.ui_scale/2,
 			vars.misc.ui_scale+Math.sin(a)*vars.misc.ui_scale/2,
-			vars.misc.ui_scale/3);
+			vars.misc.ui_scale/(i==palette.current ? 5 : 10));
 		_graphics.endFill();
 	}
 }
