@@ -288,7 +288,6 @@ function setup(){
 
 			document.body.style.backgroundColor="rgb("+palette.color1[0]+","+palette.color1[1]+","+palette.color1[2]+")";
 
-			console.log(document.body.style);
 			this.onMouseOver();
 		}
 	});
