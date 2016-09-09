@@ -1,6 +1,8 @@
 var vars={
 	range:{
 		planet_radius:[2,20], // doesn't include "big" planets, always +0.5
+		planet_rotation_speed:[10,3000], // (positive only, flipped in different step)
+
 		star_radius_inner:[1,5],
 		star_radius_outer:[3,6], // added to star_radius_inner
 		star_points:[2,16], // affected by pointType
@@ -28,15 +30,7 @@ var vars={
 		orbit_elliptical:0.5,
 
 		planet_reverse_orbit:0.01,
-		planet_big:0.05,
-
-		life_any:0.5,
-		life_flora:0.5,
-		life_fauna:0.5,
-		life_basic:0.5,
-		life_developing:0.5,
-		life_intelligent:0.5
-
+		planet_big:0.05
 	},
 	misc:{
 		ui_scale:12,
